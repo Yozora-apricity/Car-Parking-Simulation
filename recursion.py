@@ -1,5 +1,5 @@
 import random
-
+import sys
 class Plates:
     def __init__(self) ->None :
         # Put the values in a list
@@ -32,8 +32,12 @@ class Plates:
             break
         print(self.values_list) # just a testing to see if the function works
     def input_random_integers(self):
-        pass
-
+        self.flag_variable = 0
+        while self.flag_variable <= self.plate_input:
+            random_number = random.randint(0, sys.maxsize)
+            self.values_list.append(random_number)
+            self.flag_variable += 1
+            
 
     # Sort the integers    
     def sort_values(self):
