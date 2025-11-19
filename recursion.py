@@ -10,7 +10,7 @@ class Plates:
         while True:
             try:
                 while True:
-                    self.plate_input = int(input("input input number of plates FFROM 1~6: "))
+                    self.plate_input = int(input("Input number of plates FROM 1~6: "))
                     if 0 < self.plate_input == 6:
                         break
                     else:
@@ -45,7 +45,21 @@ class Plates:
 
     
 class Tower:
-    pass
+    def __init__(self, plates_obj) ->None :
+        # Create three towers as dictionaries to hold the plates.
+        self.towers = {
+            "First Tower": [],
+            "Second Tower": [],
+            "Third Tower": []
+        }
+        
+        self.towers["First Tower"] = plates_obj.values_list[:] # Copy the plates into the first tower.
+        
+    def display_towers(self):
+        # Loop through the towers and print their current contents.
+        for tower_name, plates in self.towers.items():
+            print(f"{tower_name}: {plates}")
+        
 class Logic:
     pass
 plates = Plates()
