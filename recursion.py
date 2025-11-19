@@ -23,8 +23,17 @@ class Plates:
 
                 
     # Either input or randomize integers with respect to the number of plates
-    def input_or_randomize(self):
+    def input_integers(self):
+        while True:
+            try:
+                self.values_list = [int(input(f"input number {i+1} time: ")) for i in range(0, self.plate_input)]
+            except:
+                print("please input an integer")
+            break
+        print(self.values_list) # just a testing to see if the function works
+    def input_random_integers(self):
         pass
+
 
     # Sort the integers    
     def sort_values(self):
@@ -37,3 +46,4 @@ class Logic:
     pass
 plates = Plates()
 plates.input_plates()
+plates.input_integers()
