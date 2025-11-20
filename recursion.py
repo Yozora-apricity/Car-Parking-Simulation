@@ -11,10 +11,10 @@ class Plates:
             try:
                 while True:
                     self.plate_input = int(input("Input number of plates FROM 1~6: "))
-                    if 0 < self.plate_input == 6:
+                    if 1 <= self.plate_input <= 6:
                         break
                     else:
-                        print("please input a number from 1~6")
+                        print("please input a number from 1~6 only")
 
             except:
                 print("please input an integer")
@@ -33,15 +33,16 @@ class Plates:
         print(self.values_list) # just a testing to see if the function works
     def input_random_integers(self):
         self.flag_variable = 0
-        while self.flag_variable <= self.plate_input:
-            random_number = random.randint(0, sys.maxsize)
+        while self.flag_variable < self.plate_input:
+            random_number = random.randint(0, 50)
             self.values_list.append(random_number)
             self.flag_variable += 1
-            
+        print(self.values_list)            
 
     # Sort the integers    
     def sort_values(self):
-        pass
+        self.values_list.sort()
+        print(self.values_list)
 
     
 class Tower:
@@ -64,4 +65,5 @@ class Logic:
     pass
 plates = Plates()
 plates.input_plates()
-plates.input_integers()
+plates.input_random_integers()
+plates.sort_values()
