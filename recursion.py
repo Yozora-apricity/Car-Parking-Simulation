@@ -67,13 +67,17 @@ class Logic:
         
     def hanoi_move(self, n, source, target, auxiliary):
         if n > 0:
-            self.hanoi_move(n - 1, source, auxiliary, target)
+            self.hanoi_move(n - 1, source, auxiliary, target) # Move the top stack of plates to the helper tower.
             
+            # Move the bottom plate to the Third tower.
             if self.tower_obj.towers[source]:
                 plate = self.tower_obj.towers[source].pop()
                 self.tower_obj.towers[target].append(plate)
                 print(f"Move plate {plate} from {source} to {target}")
                 self.tower_obj.display_towers()
+                
+            self.hanoi_move(n - 1, auxiliary, target, source) # Move the plates from the helper tower to the Third tower.
+            # I have no idea if this works or not hahaha
                 
                 
 plates = Plates()
