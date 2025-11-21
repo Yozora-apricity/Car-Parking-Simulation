@@ -82,10 +82,15 @@ class Logic:
         num_plates = len(self.tower_obj.towers["First Tower"])
         self.tower_obj.display_towers()
         self.hanoi_move(num_plates, "First Tower", "Third Tower", "Second Tower") 
-        #Start from First Tower to Third Tower using Second Tower as helper or auxillary.
+        # Start from First Tower to Third Tower using Second Tower as helper or auxillary.
 
-
-plates = Plates()
-plates.input_plates()
-plates.input_random_integers()
-plates.sort_values()
+if __name__ == "__main__":
+    plates = Plates() # Create an instance of Plates
+    plates.input_plates()
+    plates.input_random_integers()
+    plates.sort_values()
+    
+    tower = Tower(plates) # Setup the towers with the plates.
+    
+    logic = Logic(tower) # Run the logic.
+    logic.start_simulation()
