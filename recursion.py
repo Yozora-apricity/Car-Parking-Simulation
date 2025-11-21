@@ -62,7 +62,20 @@ class Tower:
             print(f"{tower_name}: {plates}")
         
 class Logic:
-    pass
+    def __init__(self, tower_obj) ->None :
+        self.tower_obj = tower_obj
+        
+    def hanoi_move(self, n, source, target, auxiliary):
+        if n > 0:
+            self.hanoi_move(n - 1, source, auxiliary, target)
+            
+            if self.tower_obj.towers[source]:
+                plate = self.tower_obj.towers[source].pop()
+                self.tower_obj.towers[target].append(plate)
+                print(f"Move plate {plate} from {source} to {target}")
+                self.tower_obj.display_towers()
+                
+                
 plates = Plates()
 plates.input_plates()
 plates.input_random_integers()
