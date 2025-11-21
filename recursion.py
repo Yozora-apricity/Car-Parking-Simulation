@@ -77,9 +77,14 @@ class Logic:
                 self.tower_obj.display_towers()
                 
             self.hanoi_move(n - 1, auxiliary, target, source) # Move the plates from the helper tower to the Third tower.
-            # I have no idea if this works or not hahaha
-                
-                
+            
+    def start_simulation(self):
+        num_plates = len(self.tower_obj.towers["First Tower"])
+        self.tower_obj.display_towers()
+        self.hanoi_move(num_plates, "First Tower", "Third Tower", "Second Tower") 
+        #Start from First Tower to Third Tower using Second Tower as helper or auxillary.
+
+
 plates = Plates()
 plates.input_plates()
 plates.input_random_integers()
