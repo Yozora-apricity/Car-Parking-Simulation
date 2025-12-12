@@ -1,5 +1,28 @@
 import random
 import sys
+import time
+import pygame
+
+#Global Constants
+FPS = 60
+PEG_WIDTH = 10
+BASE_HEIGHT = 20
+PLATE_HEIGHT = 20
+MIN_PLATE_WIDTH = 60
+MAX_PLATE_WIDTH = 300
+
+# Colors (R, G, B)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+ORANGE = (255, 165, 0)
+PURPLE = (128, 0, 128)
+CYAN = (0, 255, 255)
+# List of colors to cycle through for plates
+PLATE_COLORS = [RED, GREEN, BLUE, ORANGE, PURPLE, CYAN] 
+
 class Plates:
     def __init__(self) ->None :
         # Put the values in a list
@@ -56,10 +79,49 @@ class Tower:
         
         self.towers["First Tower"] = plates_obj.values_list[:] # Copy the plates into the first tower.
         
+        # VISUALIZATION DATA
+        self.width = screen_width
+        self.height = screen_height
+        
+        # Calculate X positions for the 3 pegs (25%, 50%, 75% of screen width)
+        self.peg_positions = {
+            "First Tower": self.width // 4,
+            "Second Tower": self.width // 2,
+            "Third Tower": (self.width * 3) // 4
+        }
+        
     def display_towers(self):
         # Loop through the towers and print their current contents.
         for tower_name, plates in self.towers.items():
             print(f"{tower_name}: {plates}")
+    
+    def draw(self, screen):
+        # Draw the floor/base
+        pygame.draw.rect(screen, WHITE, (0, self.height - BASE_HEIGHT, self.width, BASE_HEIGHT))
+
+        # Iterate through towers to draw Pegs and Plates
+        for tower_name, x_pos in self.peg_positions.items():
+            # Draw Peg
+            peg_height = 400 # Height of the peg
+            start_pos = (x_pos, self.height - BASE_HEIGHT)
+            end_pos = (x_pos, self.height - BASE_HEIGHT - peg_height)
+            pygame.draw.line(screen, WHITE, start_pos, end_pos, PEG_WIDTH)
+
+            # Draw Plates in this tower
+            plates = self.towers[tower_name]
+            for i, plate_value in enumerate(plates):
+                # Calculate plate dimensions
+                # Map value (0-50) to width range
+                plate_width = MIN_PLATE_WIDTH + (plate_value * 5) 
+                if plate_width > MAX_PLATE_WIDTH: plate_width = MAX_PLATE_WIDTH
+                
+                plate_x = x_pos - (plate_width // 2)
+                plate_y = self.height - BASE_HEIGHT - ((i + 1) * PLATE_HEIGHT)
+                
+                # Cycle through colors based on plate value
+                color = PLATE_COLORS[plate_value % len(PLATE_COLORS)]
+                
+                pygame.draw.rect(screen, color, (plate_x, plate_y, plate_width, PLATE_HEIGHT))
         
 class Logic:
     def __init__(self, tower_obj) ->None :
@@ -84,7 +146,21 @@ class Logic:
         self.hanoi_move(num_plates, "First Tower", "Third Tower", "Second Tower") 
         # Start from First Tower to Third Tower using Second Tower as helper or auxillary.
 
+def create_window():
+    pygame.init()
+    # Get the current display resolution
+    info_object = pygame.display.Info()
+    screen_width = info_object.current_w
+    screen_height = info_object.current_h
+    
+    # Create a full screen window
+    screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+    pygame.display.set_caption("Tower of Hanoi Simulation")
+    
+    return screen, screen_width, screen_height
+
 if __name__ == "__main__":
+    screen, screen_width, screen_height = create_window()
     plates = Plates() # Create an instance of Plates
     plates.input_plates()
     plates.input_random_integers()
@@ -94,3 +170,13 @@ if __name__ == "__main__":
     
     logic = Logic(tower) # Run the logic.
     logic.start_simulation()
+    
+    running = True #loop to keep the window open after the simulation finishes
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        pygame.display.flip()
+    
+    pygame.quit()
+    sys.exit()
