@@ -1,15 +1,22 @@
+import pygame
 import random
 import sys
 import time
-import pygame
 
-#Global Constants
+# --- GLOBAL CONSTANTS ---
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
 FPS = 60
+
 PEG_WIDTH = 10
 BASE_HEIGHT = 20
-PLATE_HEIGHT = 20
+PLATE_HEIGHT = 30
 MIN_PLATE_WIDTH = 60
 MAX_PLATE_WIDTH = 300
+
+# Visual Constants for Animation
+PEG_Y = SCREEN_HEIGHT - BASE_HEIGHT
+LIFT_HEIGHT = 150 
 
 # Colors (R, G, B)
 WHITE = (255, 255, 255)
@@ -20,8 +27,10 @@ BLUE = (0, 0, 255)
 ORANGE = (255, 165, 0)
 PURPLE = (128, 0, 128)
 CYAN = (0, 255, 255)
-# List of colors to cycle through for plates
-PLATE_COLORS = [RED, GREEN, BLUE, ORANGE, PURPLE, CYAN] 
+GRAY = (50, 50, 50)
+LIGHT_GRAY = (200, 200, 200)
+
+PLATE_COLORS = [RED, GREEN, BLUE, ORANGE, PURPLE, CYAN]
 
 class Plates:
     def __init__(self) ->None :
