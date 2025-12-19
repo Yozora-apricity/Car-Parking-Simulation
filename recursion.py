@@ -36,6 +36,7 @@ class Plates:
     def __init__(self) ->None :
         # Put the values in a list
         self.values_list = []
+        self.plate_count = 0
 
     def generate_random_plates(self, count):
         self.plate_count = count
@@ -45,47 +46,8 @@ class Plates:
         
         # Sort DESCENDING so largest plates are at the bottom
         self.values_list.sort(reverse=True)
-           
-    # input number of plates (minimum: 6)
-    def input_plates(self):
-        while True:
-            try:
-                while True:
-                    self.plate_input = int(input("Input number of plates FROM 1~6: "))
-                    if 1 <= self.plate_input <= 6:
-                        break
-                    else:
-                        print("please input a number from 1~6 only")
 
-            except:
-                print("please input an integer")
-            break
-        print(self.plate_input) # just a testing to see if the function works as intended
 
-                
-    # Either input or randomize integers with respect to the number of plates
-    def input_integers(self):
-        while True:
-            try:
-                self.values_list = [int(input(f"input number {i+1} time: ")) for i in range(0, self.plate_input)]
-            except:
-                print("please input an integer")
-            break
-        print(self.values_list) # just a testing to see if the function works
-    def input_random_integers(self):
-        self.flag_variable = 0
-        while self.flag_variable < self.plate_input:
-            random_number = random.randint(0, 50)
-            self.values_list.append(random_number)
-            self.flag_variable += 1
-        print(self.values_list)            
-
-    # Sort the integers    
-    def sort_values(self):
-        self.values_list.sort()
-        print(self.values_list)
-
-    
 class Tower:
     def __init__(self, plates_obj) ->None :
         # Create three towers as dictionaries to hold the plates.
