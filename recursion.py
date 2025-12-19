@@ -258,19 +258,37 @@ class Logic:
         
         n = len(self.tower_obj.towers["First Tower"])
         return self.hanoi_move(n, "First Tower", "Third Tower", "Second Tower")
+    
+def get_user_input_gui(screen):
+    font = pygame.font.SysFont("Arial", 40)
+    font_small = pygame.font.SysFont("Arial", 24)
+    input_value = ""
 
-def create_window():
+    while True:
+        screen.fill((30, 30, 30))
+
+def main():
     pygame.init()
-    # Get the current display resolution
-    info_object = pygame.display.Info()
-    screen_width = info_object.current_w
-    screen_height = info_object.current_h
-    
-    # Create a full screen window
-    screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+    pygame.font.init()
+
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Tower of Hanoi Simulation")
-    
-    return screen, screen_width, screen_height
+
+    while True:
+        num_plates = get_user_input_gui(screen)
+
+        plates = Plates()
+        plates.generate_random_plates(num_plates)
+
+        tower = Tower(plates, screen)
+        animation = Animation(tower, screen)
+        logic = Logic(tower, animation)
+
+        status = logic.start_simulation()
+
+        if status == "restart":
+            continue
+
 
 if __name__ == "__main__":
     main()
