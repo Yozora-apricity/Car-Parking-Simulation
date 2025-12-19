@@ -1,18 +1,12 @@
-#Note:
-# So allow me to explain some def words in this code.
-# So First Tower is the source tower where all plates start.
-# Second Tower is the auxiliary tower used during the process.
-# Third Tower is the target tower where all plates should end up.
-
 import pygame
 import random
 import sys
-import time
+import colorsys
 
 # --- GLOBAL CONSTANTS ---
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
-FPS = 60
+FPS = 30  # Optimized for low-end devices
 
 PEG_WIDTH = 10
 BASE_HEIGHT = 20
@@ -20,41 +14,50 @@ PLATE_HEIGHT = 30
 MIN_PLATE_WIDTH = 60
 MAX_PLATE_WIDTH = 300
 
-# Visual Constants for Animation
+# Visual Constants
 PEG_Y = SCREEN_HEIGHT - BASE_HEIGHT
 LIFT_HEIGHT = 150 
 
-# Colors (R, G, B)
+# Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-ORANGE = (255, 165, 0)
-PURPLE = (128, 0, 128)
-CYAN = (0, 255, 255)
 GRAY = (50, 50, 50)
 LIGHT_GRAY = (200, 200, 200)
-
-PLATE_COLORS = [RED, GREEN, BLUE, ORANGE, PURPLE, CYAN]
+DARK_GRAY = (40, 40, 40)
+HOVER_COLOR = (100, 100, 100) # Lighter gray for hover effect
+GREEN = (0, 255, 0)
+CYAN = (0, 255, 255)
+ORANGE = (255, 165, 0)
+RED = (255, 50, 50)
 
 class Plates:
     def __init__(self):
         self.values_list = []
         self.plate_count = 0
+        self.colors = {} 
 
     def generate_random_plates(self, count):
         self.plate_count = count
-        self.values_list = []
-        for _ in range(count):
-            self.values_list.append(random.randint(1, 50))
-        
-        # Sort DESCENDING so largest plates are at the bottom
+        # Perfect Pyramid: Unique sizes
+        self.values_list = random.sample(range(5, 50), count)
         self.values_list.sort(reverse=True) 
+        self.generate_colors(count)
+
+    def generate_colors(self, count):
+        self.colors = {}
+        for i, val in enumerate(self.values_list):
+            hue = i / count 
+            rgb = colorsys.hsv_to_rgb(hue, 0.8, 0.9)
+            pygame_color = (int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255))
+            self.colors[val] = pygame_color
+
+    def get_color(self, value):
+        return self.colors.get(value, (255, 0, 0))
 
 class Tower:
     def __init__(self, plates_obj, screen):
         self.screen = screen
+        self.plates_obj = plates_obj
         self.towers = {
             "First Tower": [],
             "Second Tower": [],
@@ -69,119 +72,198 @@ class Tower:
         }
         
         self.font = pygame.font.SysFont("Arial", 20, bold=True)
-        self.ui_font = pygame.font.SysFont("Arial", 24)
+        self.ui_font = pygame.font.SysFont("Arial", 20)
+        
+        # Static Text
+        self.static_ui_text = self.ui_font.render("[R] Reset | [Q] Quit", True, WHITE)
+        self.plate_text_cache = {} 
+        
+        # --- UI LAYOUT ---
+        # Position buttons to avoid overlap
+        # Speed controls at (20, 60)
+        self.btn_speed_down = pygame.Rect(20, 60, 40, 30)
+        self.btn_speed_up = pygame.Rect(70, 60, 40, 30) # Spaced out
+        
+        # Skip button below
+        self.btn_skip = pygame.Rect(20, 100, 160, 30)
 
     def get_peg_x(self, tower_name):
         return self.peg_positions[tower_name]
 
-    def draw_static_scene(self, move_count=0):
-        # Draws everything EXCEPT the moving plate.
-        self.screen.fill((30, 30, 30)) 
+    def render_background_snapshot(self):
+        """
+        Draws the static parts (Floor, Pegs, Static Plates) to a surface.
+        We do NOT draw buttons here anymore, so they can animate on hover.
+        """
+        surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        surface.fill((30, 30, 30)) 
         
-        # Create Floor
-        pygame.draw.rect(self.screen, LIGHT_GRAY, (0, SCREEN_HEIGHT - BASE_HEIGHT, SCREEN_WIDTH, BASE_HEIGHT))
+        # Draw Floor
+        pygame.draw.rect(surface, LIGHT_GRAY, (0, SCREEN_HEIGHT - BASE_HEIGHT, SCREEN_WIDTH, BASE_HEIGHT))
 
         # Draw Pegs and Static Plates
         for tower_name, x_pos in self.peg_positions.items():
-            # Draw Peg
             peg_height = 400
-            pygame.draw.rect(self.screen, LIGHT_GRAY, (x_pos - PEG_WIDTH//2, PEG_Y - peg_height, PEG_WIDTH, peg_height))
+            pygame.draw.rect(surface, LIGHT_GRAY, (x_pos - PEG_WIDTH//2, PEG_Y - peg_height, PEG_WIDTH, peg_height))
             
-            # Draw Plates in this tower
             plates = self.towers[tower_name]
             for i, plate_value in enumerate(plates):
-                self.draw_single_plate(plate_value, x_pos, i)
+                self._draw_plate_on_surface(surface, plate_value, x_pos, i)
 
-        # Draw UI (Top Right)
-        ui_text = self.ui_font.render("[R] Reset  |  [Q] Quit", True, WHITE)
-        self.screen.blit(ui_text, (SCREEN_WIDTH - ui_text.get_width() - 20, 20))
+        # Draw Top Right UI Text
+        surface.blit(self.static_ui_text, (SCREEN_WIDTH - self.static_ui_text.get_width() - 20, 20))
+        return surface
 
-        # Draw Move Tracker (Top Left)
+    def draw_ui_overlay(self, move_count, speed_label):
+        """
+        Draws the dynamic UI (Buttons, Hover effects, Text) on top of the scene.
+        """
+        mouse_pos = pygame.mouse.get_pos()
+        
+        # 1. Move Counter
         moves_text = self.ui_font.render(f"Moves: {move_count}", True, CYAN)
         self.screen.blit(moves_text, (20, 20))
-
-    def draw_single_plate(self, plate_value, x_center, stack_index, custom_y=None):
-        #Helper to draw one plate.
         
-        # Calculate Dimensions (Map 1-50 to width range)
+        # 2. Speed Buttons with Hover Animation
+        # Down Button [-]
+        color_down = HOVER_COLOR if self.btn_speed_down.collidepoint(mouse_pos) else DARK_GRAY
+        pygame.draw.rect(self.screen, color_down, self.btn_speed_down)
+        pygame.draw.rect(self.screen, WHITE, self.btn_speed_down, 1)
+        txt_minus = self.ui_font.render("-", True, WHITE)
+        self.screen.blit(txt_minus, (self.btn_speed_down.centerx - txt_minus.get_width()//2, self.btn_speed_down.y + 2))
+
+        # Up Button [+]
+        color_up = HOVER_COLOR if self.btn_speed_up.collidepoint(mouse_pos) else DARK_GRAY
+        pygame.draw.rect(self.screen, color_up, self.btn_speed_up)
+        pygame.draw.rect(self.screen, WHITE, self.btn_speed_up, 1)
+        txt_plus = self.ui_font.render("+", True, WHITE)
+        self.screen.blit(txt_plus, (self.btn_speed_up.centerx - txt_plus.get_width()//2, self.btn_speed_up.y + 2))
+        
+        # 3. Speed Text (Positioned to the RIGHT of buttons to avoid overlap)
+        txt_speed = self.ui_font.render(f"Speed: {speed_label}", True, WHITE)
+        # Position text at x=120 (right of the up button)
+        self.screen.blit(txt_speed, (120, 65)) 
+
+        # 4. Skip Button
+        color_skip = HOVER_COLOR if self.btn_skip.collidepoint(mouse_pos) else DARK_GRAY
+        pygame.draw.rect(self.screen, color_skip, self.btn_skip)
+        pygame.draw.rect(self.screen, WHITE, self.btn_skip, 1)
+        txt_skip = self.ui_font.render("SKIP TO RESULT", True, ORANGE)
+        self.screen.blit(txt_skip, (self.btn_skip.centerx - txt_skip.get_width()//2, self.btn_skip.y + 4))
+
+    def draw_full_scene(self, background_surf, move_count, speed_label):
+        """Combines the cached background and dynamic UI."""
+        self.screen.blit(background_surf, (0, 0))
+        self.draw_ui_overlay(move_count, speed_label)
+
+    def _draw_plate_on_surface(self, target_surf, plate_value, x_center, stack_index, custom_y=None):
         plate_width = MIN_PLATE_WIDTH + (plate_value * 5)
         if plate_width > MAX_PLATE_WIDTH: plate_width = MAX_PLATE_WIDTH
         
-        # Determine Position
         x = x_center - (plate_width // 2)
         if custom_y is not None:
             y = custom_y
         else:
-            # Stack from bottom up: Base - (Index+1)*Height
             y = SCREEN_HEIGHT - BASE_HEIGHT - ((stack_index + 1) * PLATE_HEIGHT)
 
-        color = PLATE_COLORS[plate_value % len(PLATE_COLORS)]
+        color = self.plates_obj.get_color(plate_value)
 
-        # Draw Rect and Border
-        pygame.draw.rect(self.screen, color, (x, y, plate_width, PLATE_HEIGHT))
-        pygame.draw.rect(self.screen, BLACK, (x, y, plate_width, PLATE_HEIGHT), 2)
+        pygame.draw.rect(target_surf, color, (x, y, plate_width, PLATE_HEIGHT))
+        pygame.draw.rect(target_surf, BLACK, (x, y, plate_width, PLATE_HEIGHT), 2)
         
-        # Draw Number
-        text = self.font.render(str(plate_value), True, BLACK)
+        if plate_value not in self.plate_text_cache:
+            self.plate_text_cache[plate_value] = self.font.render(str(plate_value), True, BLACK)
+            
+        text = self.plate_text_cache[plate_value]
         text_rect = text.get_rect(center=(x + plate_width//2, y + PLATE_HEIGHT//2))
-        self.screen.blit(text, text_rect)
+        target_surf.blit(text, text_rect)
+        
+    def draw_single_plate(self, plate_value, x_center, stack_index, custom_y=None):
+        self._draw_plate_on_surface(self.screen, plate_value, x_center, stack_index, custom_y)
 
 class Animation:
-    # Handles visual movement, timing, and input checking during animation.
     def __init__(self, tower_obj, screen):
         self.tower_obj = tower_obj
         self.screen = screen
         self.clock = pygame.time.Clock()
         
+        self.speeds = [1.2, 0.8, 0.3, 0.05] 
+        self.speed_labels = ["Slow", "Normal", "Fast", "Turbo"]
+        self.current_speed_idx = 1 
+        
+        self.skipping = False
+        
     def check_input(self):
-        # Checks for Q (Quit) or R (Restart) interrupts.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
                 if event.key == pygame.K_r:
                     return "restart"
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.tower_obj.btn_skip.collidepoint(event.pos):
+                    self.skipping = True
+                
+                if self.tower_obj.btn_speed_up.collidepoint(event.pos):
+                    if self.current_speed_idx < len(self.speeds) - 1:
+                        self.current_speed_idx += 1
+                
+                if self.tower_obj.btn_speed_down.collidepoint(event.pos):
+                    if self.current_speed_idx > 0:
+                        self.current_speed_idx -= 1
+                        
         return None
 
     def animate_move(self, plate_val, source_name, target_name, move_count):
-        # Runs the animation for moving a plate from First Tower to Third Tower.
+        if self.skipping: return "done"
+            
         start_x = self.tower_obj.get_peg_x(source_name)
         end_x = self.tower_obj.get_peg_x(target_name)
         
-        # Calculate visual start and end Y positions
         start_y = SCREEN_HEIGHT - BASE_HEIGHT - ((len(self.tower_obj.towers[source_name]) + 1) * PLATE_HEIGHT)
         end_y = SCREEN_HEIGHT - BASE_HEIGHT - ((len(self.tower_obj.towers[target_name]) + 1) * PLATE_HEIGHT)
 
-        # ANIMATION SPEED
-        duration = 0.8 
+        duration = self.speeds[self.current_speed_idx]
+        speed_label = self.speed_labels[self.current_speed_idx]
+        
         total_frames = int(duration * FPS)
+        if total_frames < 1: total_frames = 1
+        
+        # 1. Generate Static Background (No UI)
+        bg_snapshot = self.tower_obj.render_background_snapshot()
         
         for frame in range(total_frames + 1):
-            # Check for interruption
             if self.check_input() == "restart": return "restart"
+            if self.skipping: return "done"
             
             t = frame / total_frames
             
-            # Trajectory Logic
-            if t < 0.3: # Up Phase
+            if t < 0.3: # Up
                 progress = t / 0.3
                 cur_x = start_x
                 cur_y = start_y + (LIFT_HEIGHT - start_y) * progress
-            elif t < 0.7: # Across Phase
+            elif t < 0.7: # Across
                 progress = (t - 0.3) / 0.4
                 cur_x = start_x + (end_x - start_x) * progress
                 cur_y = LIFT_HEIGHT
-            else: # Down Phase
+            else: # Down
                 progress = (t - 0.7) / 0.3
                 cur_x = end_x
                 cur_y = LIFT_HEIGHT + (end_y - LIFT_HEIGHT) * progress
 
-            # Draw the frame
-            self.tower_obj.draw_static_scene(move_count) 
+            # 2. Draw Background
+            self.screen.blit(bg_snapshot, (0, 0))
+            
+            # 3. Draw UI Overlay (Buttons with hover, Text)
+            self.tower_obj.draw_ui_overlay(move_count, speed_label)
+
+            # 4. Draw Moving Plate
             self.tower_obj.draw_single_plate(plate_val, int(cur_x), -1, int(cur_y)) 
             
             pygame.display.flip()
@@ -190,60 +272,80 @@ class Animation:
         return "done"
 
 class Logic:
-    # Handles the Recursive Algorithm and State Management.
+    # Handles the Recursive Algorithm and State Management.  
     def __init__(self, tower_obj, animation_obj):
         self.tower_obj = tower_obj
-        self.animation = animation_obj # Reference to Animation class
-        self.move_count = 0 
+        self.animation = animation_obj
+        self.move_count = 0
         self.running = True
 
     def hanoi_move(self, n, source, target, auxiliary):
         if not self.running: return "restart"
 
         if n > 0:
-            # 1. Recursive Call (Move n-1 to Second Tower)
             if self.hanoi_move(n - 1, source, auxiliary, target) == "restart": return "restart"
             
-            # 2. Move the Nth Plate
+            if self.animation.check_input() == "restart": return "restart"
+
             if self.tower_obj.towers[source]:
-                # Logic: Remove plate from source stack
                 plate = self.tower_obj.towers[source].pop()
                 
-                # Visual: Ask Animation class to show movement
-                result = self.animation.animate_move(plate, source, target, self.move_count)
-                if result == "restart": return "restart"
+                if not self.animation.skipping:
+                    res = self.animation.animate_move(plate, source, target, self.move_count)
+                    if res == "restart": return "restart"
                 
-                # Logic: Add plate to target stack
                 self.tower_obj.towers[target].append(plate)
-                
-                # Update Move Counter
                 self.move_count += 1
-                self.tower_obj.draw_static_scene(self.move_count)
-                pygame.display.flip()
+                
+                if self.animation.skipping:
+                     pygame.event.pump()
+                else:
+                     # Update scene between moves
+                     bg = self.tower_obj.render_background_snapshot()
+                     label = self.animation.speed_labels[self.animation.current_speed_idx]
+                     self.tower_obj.draw_full_scene(bg, self.move_count, label)
+                     pygame.display.flip()
 
-            # 3. Recursive Call (Move n-1 from Aux to Target)
             if self.hanoi_move(n - 1, auxiliary, target, source) == "restart": return "restart"
 
     def start_simulation(self):
-        # Initial Draw
-        self.tower_obj.draw_static_scene(0)
+        label = self.animation.speed_labels[self.animation.current_speed_idx]
+        bg = self.tower_obj.render_background_snapshot()
+        self.tower_obj.draw_full_scene(bg, 0, label)
         pygame.display.flip()
-        time.sleep(0.5)
+        pygame.time.delay(500)
         
         num_plates = len(self.tower_obj.towers["First Tower"])
-        return self.hanoi_move(num_plates, "First Tower", "Third Tower", "Second Tower")
+        result = self.hanoi_move(num_plates, "First Tower", "Third Tower", "Second Tower")
+        
+        # Final Draw
+        label = self.animation.speed_labels[self.animation.current_speed_idx]
+        bg = self.tower_obj.render_background_snapshot()
+        self.tower_obj.draw_full_scene(bg, self.move_count, label)
+        pygame.display.flip()
+        
+        return result
 
 def get_user_input_gui(screen):
     font = pygame.font.SysFont("Arial", 40)
     font_small = pygame.font.SysFont("Arial", 24)
+    font_error = pygame.font.SysFont("Arial", 20, bold=True)
+    
     input_value = ""
+    error_msg = "" # Store error text here
+    clock = pygame.time.Clock()
+    
+    numpad_map = {
+        pygame.K_KP0: "0", pygame.K_KP1: "1", pygame.K_KP2: "2", pygame.K_KP3: "3",
+        pygame.K_KP4: "4", pygame.K_KP5: "5", pygame.K_KP6: "6",
+        pygame.K_KP7: "7", pygame.K_KP8: "8", pygame.K_KP9: "9"
+    }
     
     while True:
         screen.fill((30, 30, 30))
-        
         title = font.render("Tower of Hanoi", True, WHITE)
-        prompt = font_small.render("Type how many number of plates (3-8)", True, GREEN)
-        prompt2 = font_small.render("Press enter to start.", True, GREEN)
+        prompt = font_small.render("Type how many plates (3-8)", True, GREEN)
+        prompt2 = font_small.render("Press ENTER to start", True, GREEN)
         current = font.render(f"Plates: {input_value}", True, CYAN)
         
         screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 150))
@@ -251,7 +353,13 @@ def get_user_input_gui(screen):
         screen.blit(prompt2, (SCREEN_WIDTH//2 - prompt2.get_width()//2, 300))
         screen.blit(current, (SCREEN_WIDTH//2 - current.get_width()//2, 400))
         
+        # --- ERROR MESSAGE DISPLAY ---
+        if error_msg:
+            err_surf = font_error.render(error_msg, True, RED)
+            screen.blit(err_surf, (SCREEN_WIDTH//2 - err_surf.get_width()//2, 450))
+        
         pygame.display.flip()
+        clock.tick(FPS)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -262,50 +370,71 @@ def get_user_input_gui(screen):
                     pygame.quit()
                     sys.exit()
                 
-                # Accept any numeric input (Numpad or Top Row)
+                # Logic: If user types anything, clear the error message
+                error_msg = ""
+                
                 if event.unicode.isnumeric():
-                    input_value = event.unicode
+                    input_value += event.unicode
+                elif event.key in numpad_map:
+                    input_value += numpad_map[event.key]
+                elif event.key == pygame.K_BACKSPACE:
+                    input_value = input_value[:-1]
                     
-                elif event.key == pygame.K_RETURN and input_value != "":
+                elif event.key == pygame.K_RETURN:
+                    # VALIDATION LOGIC
                     try:
-                        val = int(input_value)
-                        if 3 <= val <= 8: 
-                            return val
-                    except: pass
+                        if input_value == "":
+                            error_msg = "Please enter a number!"
+                        else:
+                            val = int(input_value)
+                            if 3 <= val <= 8: 
+                                return val
+                            else:
+                                error_msg = "Invalid Input! Please enter a number between 3-8 only."
+                                input_value = "" # Clear invalid input
+                    except ValueError:
+                        error_msg = "Invalid Input! Numbers only."
+                        input_value = ""
 
 def main():
     pygame.init()
     pygame.font.init()
-    
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.DOUBLEBUF)
     pygame.display.set_caption("Tower of Hanoi Simulation")
     
     while True:
         num_plates = get_user_input_gui(screen)
         
-        # Initialize Objects
         plates = Plates()
         plates.generate_random_plates(num_plates)
         
         tower = Tower(plates, screen)
-        animation = Animation(tower, screen) # New Animation Object
-        logic = Logic(tower, animation)      # Pass Animation to Logic
+        animation = Animation(tower, screen)
+        logic = Logic(tower, animation)
         
-        # Start
         status = logic.start_simulation()
         
         if status == "restart":
             continue
             
-        # End Screen Loop
         waiting = True
+        clock = pygame.time.Clock()
         while waiting:
-            tower.draw_static_scene(logic.move_count)
+            # Draw final state
+            bg = tower.render_background_snapshot()
+            label = animation.speed_labels[animation.current_speed_idx]
+            tower.draw_full_scene(bg, logic.move_count, label)
             
             font = pygame.font.SysFont("Arial", 50, bold=True)
             text = font.render("Complete! Press R or Q", True, GREEN)
+            
+            bg_rect = text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 25))
+            bg_rect.inflate_ip(20, 20)
+            pygame.draw.rect(screen, BLACK, bg_rect)
             screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - 50))
+            
             pygame.display.flip()
+            clock.tick(FPS)
             
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -318,5 +447,5 @@ def main():
                     if event.key == pygame.K_r:
                         waiting = False
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     main()
