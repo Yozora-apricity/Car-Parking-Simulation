@@ -141,7 +141,7 @@ class Tower:
         moves_text = self.ui_font.render(f"Moves: {move_count}", True, CYAN)
         self.screen.blit(moves_text, (20, 20))
 
-        def draw_single_plate(self, plate_value, x_center, stack_index, custom_y=None):
+    def draw_single_plate(self, plate_value, x_center, stack_index, custom_y=None):
         plate_width = min(
             MIN_PLATE_WIDTH + plate_value * 5,
             MAX_PLATE_WIDTH
