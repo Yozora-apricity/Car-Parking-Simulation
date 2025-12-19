@@ -168,9 +168,66 @@ class Animation:
         self.screen = screen
         self.clock = pygame.time.Clock()
         
+    def check_input(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+                if event.key == pygame.K_r:
+                    return "restart"
+        return None
+    
+    def animate_move(self, plate_val, source, target, move_count):
+        start_x = self.tower_obj.get_peg_x(source)
+        end_x = self.tower_obj.get_peg_x(target)
+
+        start_y = SCREEN_HEIGHT - BASE_HEIGHT - (
+            (len(self.tower_obj.towers[source]) + 1) * PLATE_HEIGHT
+        )
+        end_y = SCREEN_HEIGHT - BASE_HEIGHT - (
+            (len(self.tower_obj.towers[target]) + 1) * PLATE_HEIGHT
+        )
+
+        duration = 0.8
+        total_frames = int(duration * FPS)
+
+        for frame in range(total_frames + 1):
+            if self.check_input() == "restart":
+                return "restart"
+
+            t = frame / total_frames
+
+            if t < 0.3:
+                cur_x = start_x
+                cur_y = start_y + (LIFT_HEIGHT - start_y) * (t / 0.3)
+            elif t < 0.7:
+                cur_x = start_x + (end_x - start_x) * ((t - 0.3) / 0.4)
+                cur_y = LIFT_HEIGHT
+            else:
+                cur_x = end_x
+                cur_y = LIFT_HEIGHT + (end_y - LIFT_HEIGHT) * ((t - 0.7) / 0.3)
+
+            self.tower_obj.draw_static_scene(move_count)
+            self.tower_obj.draw_single_plate(
+                plate_val, int(cur_x), -1, int(cur_y)
+            )
+
+            pygame.display.flip()
+            self.clock.tick(FPS)
+
+        return "done"
+
 class Logic:
-    def __init__(self, tower_obj) ->None :
+    def __init__(self, tower_obj, animation_obj) ->None :
         self.tower_obj = tower_obj
+        self.animation_obj = animation_obj
+        self.move_count = 0
+        self.running = True
         
     def hanoi_move(self, n, source, target, auxiliary):
         if n > 0:
