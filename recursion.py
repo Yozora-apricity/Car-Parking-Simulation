@@ -36,7 +36,16 @@ class Plates:
     def __init__(self) ->None :
         # Put the values in a list
         self.values_list = []
-    
+
+    def generate_random_plates(self, count):
+        self.plate_count = count
+        self.values_list = []
+        for _ in range(count):
+            self.values_list.append(random.randint(1, 50))
+        
+        # Sort DESCENDING so largest plates are at the bottom
+        self.values_list.sort(reverse=True)
+           
     # input number of plates (minimum: 6)
     def input_plates(self):
         while True:
@@ -88,10 +97,6 @@ class Tower:
         
         self.towers["First Tower"] = plates_obj.values_list[:] # Copy the plates into the first tower.
         
-        # VISUALIZATION DATA
-        self.width = screen_width
-        self.height = screen_height
-        
         # Calculate X positions for the 3 pegs (25%, 50%, 75% of screen width)
         self.peg_positions = {
             "First Tower": self.width // 4,
@@ -99,38 +104,69 @@ class Tower:
             "Third Tower": (self.width * 3) // 4
         }
         
+        self.font = pygame.font.SysFont("Arial", 20, bold=True)
+        self.ui_font = pygame.font.SysFont("Arial", 24)
+        
     def display_towers(self):
         # Loop through the towers and print their current contents.
         for tower_name, plates in self.towers.items():
             print(f"{tower_name}: {plates}")
     
-    def draw(self, screen):
-        # Draw the floor/base
-        pygame.draw.rect(screen, WHITE, (0, self.height - BASE_HEIGHT, self.width, BASE_HEIGHT))
+    def get_peg_x(self, tower_name):
+        return self.peg_positions[tower_name]
 
-        # Iterate through towers to draw Pegs and Plates
+    def draw_static_scene(self, move_count=0):
+        self.screen.fill((30, 30, 30))
+
+        pygame.draw.rect(
+            self.screen,
+            LIGHT_GRAY,
+            (0, SCREEN_HEIGHT - BASE_HEIGHT, SCREEN_WIDTH, BASE_HEIGHT)
+        )
+
         for tower_name, x_pos in self.peg_positions.items():
-            # Draw Peg
-            peg_height = 400 # Height of the peg
-            start_pos = (x_pos, self.height - BASE_HEIGHT)
-            end_pos = (x_pos, self.height - BASE_HEIGHT - peg_height)
-            pygame.draw.line(screen, WHITE, start_pos, end_pos, PEG_WIDTH)
+            peg_height = 400
+            pygame.draw.rect(
+                self.screen,
+                LIGHT_GRAY,
+                (x_pos - PEG_WIDTH//2, PEG_Y - peg_height, PEG_WIDTH, peg_height)
+            )
 
-            # Draw Plates in this tower
-            plates = self.towers[tower_name]
-            for i, plate_value in enumerate(plates):
-                # Calculate plate dimensions
-                # Map value (0-50) to width range
-                plate_width = MIN_PLATE_WIDTH + (plate_value * 5) 
-                if plate_width > MAX_PLATE_WIDTH: plate_width = MAX_PLATE_WIDTH
-                
-                plate_x = x_pos - (plate_width // 2)
-                plate_y = self.height - BASE_HEIGHT - ((i + 1) * PLATE_HEIGHT)
-                
-                # Cycle through colors based on plate value
-                color = PLATE_COLORS[plate_value % len(PLATE_COLORS)]
-                
-                pygame.draw.rect(screen, color, (plate_x, plate_y, plate_width, PLATE_HEIGHT))
+            for i, plate_value in enumerate(self.towers[tower_name]):
+                self.draw_single_plate(plate_value, x_pos, i)
+
+        ui_text = self.ui_font.render("[R] Reset  |  [Q] Quit", True, WHITE)
+        self.screen.blit(ui_text, (SCREEN_WIDTH - ui_text.get_width() - 20, 20))
+
+        moves_text = self.ui_font.render(f"Moves: {move_count}", True, CYAN)
+        self.screen.blit(moves_text, (20, 20))
+
+        def draw_single_plate(self, plate_value, x_center, stack_index, custom_y=None):
+        plate_width = min(
+            MIN_PLATE_WIDTH + plate_value * 5,
+            MAX_PLATE_WIDTH
+        )
+
+        x = x_center - plate_width // 2
+        y = (
+            custom_y
+            if custom_y is not None
+            else SCREEN_HEIGHT - BASE_HEIGHT - ((stack_index + 1) * PLATE_HEIGHT)
+        )
+
+        color = PLATE_COLORS[plate_value % len(PLATE_COLORS)]
+
+        pygame.draw.rect(self.screen, color, (x, y, plate_width, PLATE_HEIGHT))
+        pygame.draw.rect(self.screen, BLACK, (x, y, plate_width, PLATE_HEIGHT), 2)
+
+        text = self.font.render(str(plate_value), True, BLACK)
+        self.screen.blit(text, text.get_rect(center=(x + plate_width//2, y + PLATE_HEIGHT//2)))
+
+class Animation:
+    def __init__(self, tower_obj, screen) ->None :
+        self.tower_obj = tower_obj
+        self.screen = screen
+        self.clock = pygame.time.Clock()
         
 class Logic:
     def __init__(self, tower_obj) ->None :
