@@ -1,7 +1,8 @@
-# Note:
-# Source is First Tower
-# Target is Third Tower
-# Auxiliary is Second Tower
+#Note:
+# So allow me to explain some def words in this code.
+# So First Tower is the source tower where all plates start.
+# Second Tower is the auxiliary tower used during the process.
+# Third Tower is the target tower where all plates should end up.
 
 import pygame
 import random
@@ -77,7 +78,7 @@ class Tower:
         """Draws everything EXCEPT the moving plate."""
         self.screen.fill((30, 30, 30)) 
         
-        # Craete Floor
+        # Create Floor
         pygame.draw.rect(self.screen, LIGHT_GRAY, (0, SCREEN_HEIGHT - BASE_HEIGHT, SCREEN_WIDTH, BASE_HEIGHT))
 
         # Draw Pegs and Static Plates
@@ -91,7 +92,7 @@ class Tower:
             for i, plate_value in enumerate(plates):
                 self.draw_single_plate(plate_value, x_pos, i)
 
-        # Create UI (Top Right)
+        # Draw UI (Top Right)
         ui_text = self.ui_font.render("[R] Reset  |  [Q] Quit", True, WHITE)
         self.screen.blit(ui_text, (SCREEN_WIDTH - ui_text.get_width() - 20, 20))
 
@@ -133,7 +134,7 @@ class Animation:
         self.clock = pygame.time.Clock()
         
     def check_input(self):
-        # Check for user input to interrupt animation
+        # Checks for Q (Quit) or R (Restart) interrupts.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -260,6 +261,10 @@ def get_user_input_gui(screen):
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
+                
+                # Accept any numeric input (Numpad or Top Row)
+                if event.unicode.isnumeric():
+                    input_value = event.unicode
                     
                 elif event.key == pygame.K_RETURN and input_value != "":
                     try:
