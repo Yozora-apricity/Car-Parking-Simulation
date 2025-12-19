@@ -75,7 +75,7 @@ class Tower:
         return self.peg_positions[tower_name]
 
     def draw_static_scene(self, move_count=0):
-        """Draws everything EXCEPT the moving plate."""
+        # Draws everything EXCEPT the moving plate.
         self.screen.fill((30, 30, 30)) 
         
         # Create Floor
@@ -242,7 +242,7 @@ def get_user_input_gui(screen):
         screen.fill((30, 30, 30))
         
         title = font.render("Tower of Hanoi", True, WHITE)
-        prompt = font_small.render("Type how many number of plates (1-9)", True, GREEN)
+        prompt = font_small.render("Type how many number of plates (3-8)", True, GREEN)
         prompt2 = font_small.render("Press enter to start.", True, GREEN)
         current = font.render(f"Plates: {input_value}", True, CYAN)
         
@@ -269,7 +269,7 @@ def get_user_input_gui(screen):
                 elif event.key == pygame.K_RETURN and input_value != "":
                     try:
                         val = int(input_value)
-                        if 1 <= val <= 9: 
+                        if 3 <= val <= 8: 
                             return val
                     except: pass
 
@@ -318,5 +318,5 @@ def main():
                     if event.key == pygame.K_r:
                         waiting = False
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     main()
