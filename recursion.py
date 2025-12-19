@@ -231,22 +231,33 @@ class Logic:
         
     def hanoi_move(self, n, source, target, auxiliary):
         if n > 0:
-            self.hanoi_move(n - 1, source, auxiliary, target) # Move the top stack of plates to the helper tower.
-            
-            # Move the bottom plate to the Third tower.
-            if self.tower_obj.towers[source]:
-                plate = self.tower_obj.towers[source].pop()
-                self.tower_obj.towers[target].append(plate)
-                print(f"Move plate {plate} from {source} to {target}")
-                self.tower_obj.display_towers()
-                
-            self.hanoi_move(n - 1, auxiliary, target, source) # Move the plates from the helper tower to the Third tower.
+            if self.hanoi_move(n - 1, source, auxiliary, target) == "restart":
+                return "restart"
+
+            plate = self.tower_obj.towers[source].pop()
+
+            if self.animation.animate_move(
+                plate, source, target, self.move_count
+            ) == "restart":
+                return "restart"
+
+            self.tower_obj.towers[target].append(plate)
+            self.move_count += 1
+
+            self.tower_obj.draw_static_scene(self.move_count)
+            pygame.display.flip()
+
+            if self.hanoi_move(n - 1, auxiliary, target, source) == "restart":
+                return "restart"
+
             
     def start_simulation(self):
-        num_plates = len(self.tower_obj.towers["First Tower"])
-        self.tower_obj.display_towers()
-        self.hanoi_move(num_plates, "First Tower", "Third Tower", "Second Tower") 
-        # Start from First Tower to Third Tower using Second Tower as helper or auxillary.
+        self.tower_obj.draw_static_scene(0)
+        pygame.display.flip()
+        time.sleep(0.5)
+        
+        n = len(self.tower_obj.towers["First Tower"])
+        return self.hanoi_move(n, "First Tower", "Third Tower", "Second Tower")
 
 def create_window():
     pygame.init()
@@ -262,23 +273,4 @@ def create_window():
     return screen, screen_width, screen_height
 
 if __name__ == "__main__":
-    screen, screen_width, screen_height = create_window()
-    plates = Plates() # Create an instance of Plates
-    plates.input_plates()
-    plates.input_random_integers()
-    plates.sort_values()
-    
-    tower = Tower(plates) # Setup the towers with the plates.
-    
-    logic = Logic(tower) # Run the logic.
-    logic.start_simulation()
-    
-    running = True #loop to keep the window open after the simulation finishes
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        pygame.display.flip()
-    
-    pygame.quit()
-    sys.exit()
+    main()
