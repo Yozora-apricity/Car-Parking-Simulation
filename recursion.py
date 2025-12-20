@@ -395,12 +395,55 @@ def get_user_input_gui(screen):
                     except ValueError:
                         error_msg = "Invalid Input! Numbers only."
                         input_value = ""
+class Menu():
+    def __init__(self, screen):
+        self.screen = screen
+        self.title_font = pygame.font.SysFont("Arial", 50, bold=True)
+        self.option_font = pygame.font.SysFont("Arial", 30)
+    def run(self):
+        clock = pygame.time.Clock()
+        while True:
+            self.screen.fill((50, 50, 50))
+            title_surf = self.title_font.render("Tower of Hanoi Simulation", True, (255, 255, 255))
+            option1_surf = self.option_font.render("Press 1 to Play Tower of Hanoi Game", True, (200, 200, 200))
+            option2_surf = self.option_font.render("Press 2 to Simulate Tower of Hanoi", True, (200, 200, 200))
+            self.screen.blit(title_surf, (SCREEN_WIDTH // 2 - title_surf.get_width() // 2, 100))
+            self.screen.blit(option1_surf, (SCREEN_WIDTH // 2 - option1_surf.get_width() // 2, 250))
+            self.screen.blit(option2_surf, (SCREEN_WIDTH // 2 - option2_surf.get_width() // 2, 300))
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_1:
+                        print("Game mode selected - Not implemented in this version.")
+                        # Here you would call the game mode function
+                    elif event.key == pygame.K_2:
+                        return  # proceed to simulation mode
+            clock.tick(FPS)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_1:
+                        return "simulate"
+                    elif event.key == pygame.K_2:
+                        return "play"
+                    elif event.key == pygame.K_q:
+                        pygame.quit()
+                        sys.exit()
+
 
 def main():
     pygame.init()
     pygame.font.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.DOUBLEBUF)
     pygame.display.set_caption("Tower of Hanoi Simulation")
+    menu = Menu(screen)
+    menu.run()
     
     while True:
         num_plates = get_user_input_gui(screen)
