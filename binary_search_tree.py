@@ -43,4 +43,28 @@ class BST:
             self.lrt(node.left, result)
             self.lrt(node.right, result)
             result.append(node.value)
+            
+# ---------------- UI ---------------- #
+class BSTVisualizer:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("BST Visualizer – LTR / TLR / LRT")
+        self.root.geometry("1000x650")
+
+        self.bst = BST()
+
+        # Controls
+        control = tk.Frame(root)
+        control.pack(pady=10)
         
+         # Controls
+        control = tk.Frame(root)
+        control.pack(pady=10)
+
+        self.entry = ttk.Entry(control, width=10)
+        self.entry.pack(side=tk.LEFT, padx=5)
+
+        ttk.Button(control, text="Insert", command=self.insert_value).pack(side=tk.LEFT, padx=5)
+        ttk.Button(control, text="LTR (Inorder)", command=self.show_ltr).pack(side=tk.LEFT, padx=5)
+        ttk.Button(control, text="TLR (Preorder)", command=self.show_tlr).pack(side=tk.LEFT, padx=5)
+        ttk.Button(control, text="LRT (Postorder)", command=self.show_lrt).pack(side=tk.LEFT, padx=5)
