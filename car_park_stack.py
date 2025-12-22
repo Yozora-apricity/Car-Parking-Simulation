@@ -46,3 +46,8 @@ print("Stack after Pop: ", myStack.stack)
 print("Peek: ", myStack.peek())
 print("isEmpty: ", myStack.isEmpty())
 print("Size: ", myStack.size())
+
+# Comments:
+    # 1. Add a code that ask user which value are to be pop; If they want to pop all
+    #    elements until the stack is empty
+    # 2. Add random to generate values if user doesn't want to manually input values

@@ -45,3 +45,8 @@ print("Dequeue: ", myQueue.dequeue())
 print("Peek: ", myQueue.peek())
 print("isEmpty: ", myQueue.isEmpty())
 print("Size: ", myQueue.size())
+
+# Comments:
+    # 1. Add a code that ask user which value are to be dequeue; If they want to dequeue all
+    #    elements until the queue is empty
+    # 2. Add random to generate values if user doesn't want to manually input values
