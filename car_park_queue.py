@@ -24,16 +24,24 @@ class Queue:
 
 # Create a queue
 myQueue = Queue()
+while True:
+    try:
+        queue_count = int(input("How many values would you like to input? (1-10): "))
+        if 1 <= queue_count <= 10:
+            break
+        else:
+            print("Please limit your input to 10 only.")
+    except ValueError:
+        print("Error: Invalid input. Please enter a number")
 
-myQueue.enqueue('A')
-myQueue.enqueue('B')
-myQueue.enqueue('C')
+for i in range(queue_count):
+    value = input(f"Enter value for Node {i+1} of {queue_count}: ")
+    myQueue.enqueue(value)
+
+print("\n")
+print("Queue Results")
 print("Queue: ", myQueue.queue)
-
 print("Dequeue: ", myQueue.dequeue())
-
 print("Peek: ", myQueue.peek())
-
 print("isEmpty: ", myQueue.isEmpty())
-
 print("Size: ", myQueue.size())
