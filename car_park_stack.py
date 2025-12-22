@@ -47,6 +47,14 @@ print("Peek: ", myStack.peek())
 print("isEmpty: ", myStack.isEmpty())
 print("Size: ", myStack.size())
 
+class Car():
+    def __init__(self, plate_number):
+        self.plate_number = plate_number
+    def plate_number(self):
+        return self.plate_number
+class ParkingLot():
+   pass
+
 # Comments:
     # 1. Add a code that ask user which value are to be pop; If they want to pop all
     #    elements until the stack is empty
