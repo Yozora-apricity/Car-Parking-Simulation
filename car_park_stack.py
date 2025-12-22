@@ -1,3 +1,5 @@
+import random
+import string
 class Stack:
   def __init__(self):
     self.stack = []
@@ -48,10 +50,12 @@ print("isEmpty: ", myStack.isEmpty())
 print("Size: ", myStack.size())
 
 class Car():
-    def __init__(self, plate_number):
-        self.plate_number = plate_number
-    def plate_number(self):
-        return self.plate_number
+    def __init__(self):
+        self.plate_number = self.generate_plate_number()
+    def generate_plate_number(self):
+       self.letters = "".join(random.choices(string.ascii_uppercase, k=3))
+       self.numbers = "".join(random.choices(string.digits, k=3))
+       return f"{self.numbers}-{self.letters}"
 class ParkingLot():
    pass
 
@@ -59,3 +63,5 @@ class ParkingLot():
     # 1. Add a code that ask user which value are to be pop; If they want to pop all
     #    elements until the stack is empty
     # 2. Add random to generate values if user doesn't want to manually input values
+car = Car()
+print(car.plate_number)
