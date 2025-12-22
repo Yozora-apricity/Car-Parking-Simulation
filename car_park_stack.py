@@ -24,10 +24,22 @@ class Stack:
 # Create a stack
 myStack = Stack()
 
-myStack.push('A')
-myStack.push('B')
-myStack.push('C')
+while True:
+    try:
+        stack_count = int(input("How many values would you like to input? (1-10): "))
+        if 1 <= stack_count <= 10:
+            break
+        else:
+            print("Please limit your input to 10 only.")
+    except ValueError:
+        print("Error: Invalid input. Please enter a number")
 
+for i in range(stack_count):
+    value = input(f"Enter value for Node {i+1} of {stack_count}: ")
+    myStack.push(value)
+
+print("\n")
+print("Stack Results")
 print("Stack: ", myStack.stack)
 print("Pop: ", myStack.pop())
 print("Stack after Pop: ", myStack.stack)
