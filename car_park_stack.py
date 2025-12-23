@@ -52,6 +52,8 @@ print("Size: ", myStack.size())
 class Car():
     def __init__(self):
         self.plate_number = self.generate_plate_number()
+        self.arrivals = 0
+        self.departures = 0
     def generate_plate_number(self):
        self.letters = "".join(random.choices(string.ascii_uppercase, k=3))
        self.numbers = "".join(random.choices(string.digits, k=3))
@@ -59,10 +61,26 @@ class Car():
     def removal_input(self):
        self.target = input("enter the node value to be removed: ")
        return self.target
-    def remove_car(self):
-       self.target = self.removal_input()
-       stack_operations = Stack()
+    def remove_car(self, stack, target):
+        if stack.isEmpty():
+            return False
 
+        top_car = stack.pop()
+        top_car.departures += 1
+
+        if top_car.plate_number == target:
+            return True
+
+        found = self.remove_car(stack, target)
+
+        if found:
+            stack.push(top_car)
+            top_car.arrivals += 1
+            print(f"Car {top_car.plate_number} re-entered the stack." f"Arrivals: {top_car.arrivals}, Departures: {top_car.departures}")
+
+        return found
+
+      
 class ParkingLot():
    pass
 
@@ -71,4 +89,6 @@ class ParkingLot():
     #    elements until the stack is empty
     # 2. Add random to generate values if user doesn't want to manually input values
 car = Car()
-print(car.plate_number)
+myStack.push(car)
+car.removal_input()
+car.remove_car(myStack, car.target) #encounters attribute error due to data types in the stack being a class object and string"
