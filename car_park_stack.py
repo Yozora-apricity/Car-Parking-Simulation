@@ -56,6 +56,13 @@ class Car():
        self.letters = "".join(random.choices(string.ascii_uppercase, k=3))
        self.numbers = "".join(random.choices(string.digits, k=3))
        return f"{self.numbers}-{self.letters}"
+    def removal_input(self):
+       self.target = input("enter the node value to be removed: ")
+       return self.target
+    def remove_car(self):
+       self.target = self.removal_input()
+       stack_operations = Stack()
+
 class ParkingLot():
    pass
 
