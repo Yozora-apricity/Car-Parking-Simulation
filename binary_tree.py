@@ -104,3 +104,9 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = BinaryTreeUI(root)
     root.mainloop()
+
+# TODO: Once user pressed enter, it will direct them to an option of how many levels (max: 5) is the binary tree (can be random generated)
+#       After choosing the level, it will open to the page where user can create the binary tree, can be random generated or manual
+#       - Show the level and number of nodes for guide (Ex. Level: [#] | Nodes: #/31
+#       - Have choices to reset, quit, or go back to main menu
+#       - Will show the TLR, LRT, and LTR of the binary tree
