@@ -60,13 +60,47 @@ class BinaryTreeOrder:
                 nodes[i].right = nodes[right_idx]
         self.root = nodes[0]
 
+# --- BINARY TREE  UI ---
+class BinaryTreeUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Binary Tree")
+        self.root.geometry("1000x650")
+        self.root.configure(bg="#f8fafc")
+
+        self.main_frame = tk.Frame(self.root, bg="#f8fafc")
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.root.bind("<Escape>", lambda e: self.root.quit())
+
+        self.main_menu_screen()
+
+    def clear_screen(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+
+    def main_menu_screen(self):
+        self.clear_screen()
+
+        tk.Label(
+            self.main_frame,
+            text="BINARY TREE",
+            font=("Arial", 40, "bold"),
+            bg="#f8fafc",
+            fg="#1e293b"
+        ).pack(pady=200)
+
+        tk.Label(
+            self.main_frame,
+            text="Press ENTER to Start",
+            font=("Arial", 14),
+            bg="#f8fafc",
+            fg="#64748b"
+        ).pack()
+
+        self.root.bind("<Return>", lambda e: print("Start pressed"))
+
 if __name__ == "__main__":
-    tree = BinaryTreeOrder()
-
-    # Example level-order values
-    values = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-    tree.tree_level_order(values)
-
-    print("In-order (LTR):", ltr(tree.root))
-    print("Pre-order (TLR):", tlr(tree.root))
-    print("Post-order (LRT):", lrt(tree.root))
+    root = tk.Tk()
+    app = BinaryTreeUI(root)
+    root.mainloop()
