@@ -20,6 +20,7 @@ def main():
                 plate = input("Enter Plate Number: ").upper()
                 new_car = Car(plate)
                 Car_Lane.push(new_car)
+                new_car.arrivals += 1
                 print(f"Car {new_car.plate_number} entered the lane at Slot {Car_Lane.size()}.")
 
             elif sub_choice == 'B':
@@ -53,7 +54,7 @@ def show_dashboard(stack):
         print("Lane is empty.")
         return
 
-    for i, car in enumerate(reversed(stack.stack), start=1):
+    for i, car in enumerate(stack.stack, start=1):
         print(f"Slot {i}: {car.plate_number} | Arrivals: {car.arrivals} | Departures: {car.departures}")
 
 if __name__ == "__main__":

@@ -28,13 +28,19 @@ class Car():
         if stack.isEmpty():
             return False
 
+        # Physical departure
         top_car = stack.pop()
+        top_car.departures += 1
 
+        # If this is the target, removal is complete
         if top_car.plate_number == target:
-            top_car.departures += 1
-            print(f"Arrivals: {top_car.arrivals}, Departures: {top_car.departures}")
             return True
 
+        # Recurse down the stack
         found = self.remove_car(stack, target)
+
+        # Physical re-arrival (always, because the car comes back)
         stack.push(top_car)
+        top_car.arrivals += 1
+
         return found
