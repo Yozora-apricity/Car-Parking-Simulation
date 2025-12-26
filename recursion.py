@@ -395,62 +395,13 @@ def get_user_input_gui(screen):
                     except ValueError:
                         error_msg = "Invalid Input! Numbers only."
                         input_value = ""
-class Menu():
-    def __init__(self, screen):
-        self.screen = screen
-        self.title_font = pygame.font.SysFont("Arial", 50, bold=True)
-        self.option_font = pygame.font.SysFont("Arial", 30)
-    
-    def run(self):
-        clock = pygame.time.Clock()
-        while True:
-            self.screen.fill((50, 50, 50))
-            title_surf = self.title_font.render("Tower of Hanoi", True, (255, 255, 255))
-            option1_surf = self.option_font.render("Press 1 to Play", True, (200, 200, 200))
-            option2_surf = self.option_font.render("Press 2 to Simulate", True, (200, 200, 200))
-            quit_surf = self.option_font.render("Press Q to Quit", True, (200, 200, 200))
-            
-            self.screen.blit(title_surf, (SCREEN_WIDTH // 2 - title_surf.get_width() // 2, 100))
-            self.screen.blit(option1_surf, (SCREEN_WIDTH // 2 - option1_surf.get_width() // 2, 250))
-            self.screen.blit(option2_surf, (SCREEN_WIDTH // 2 - option2_surf.get_width() // 2, 320))
-            self.screen.blit(quit_surf, (SCREEN_WIDTH // 2 - quit_surf.get_width() // 2, 390))
-            pygame.display.flip()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_1:
-                        return "play"
-                    elif event.key == pygame.K_2:
-                        return "simulate"
-                    elif event.key == pygame.K_q:
-                        pygame.quit()
-                        sys.exit()
-            
-            clock.tick(FPS)
-
 
 def main():
     pygame.init()
     pygame.font.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.DOUBLEBUF)
-    pygame.display.set_caption("Tower of Hanoi")
+    pygame.display.set_caption("Tower of Hanoi Simulation")
     
-    while True:
-        # Show Menu
-        menu = Menu(screen)
-        choice = menu.run()
-        
-        if choice == "simulate":
-            run_simulation_mode(screen)
-        elif choice == "play":
-            run_game_mode(screen)
-
-
-def run_simulation_mode(screen):
-    """Automatic simulation mode where the computer solves the puzzle"""
     while True:
         num_plates = get_user_input_gui(screen)
         
@@ -475,7 +426,7 @@ def run_simulation_mode(screen):
             tower.draw_full_scene(bg, logic.move_count, label)
             
             font = pygame.font.SysFont("Arial", 50, bold=True)
-            text = font.render("Complete! Press R to Return to Menu or Q to Quit", True, GREEN)
+            text = font.render("Complete! Press R or Q", True, GREEN)
             
             bg_rect = text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 25))
             bg_rect.inflate_ip(20, 20)
@@ -494,38 +445,7 @@ def run_simulation_mode(screen):
                         pygame.quit()
                         sys.exit()
                     if event.key == pygame.K_r:
-                        return  # Return to menu
-
-
-def run_game_mode(screen):
-    """Interactive game mode (to be implemented)"""
-    font = pygame.font.SysFont("Arial", 40, bold=True)
-    font_small = pygame.font.SysFont("Arial", 24)
-    clock = pygame.time.Clock()
-    
-    while True:
-        screen.fill((30, 30, 30))
-        title = font.render("Game Mode", True, WHITE)
-        msg1 = font_small.render("Coming Soon!", True, GREEN)
-        msg2 = font_small.render("Press R to return to menu or Q to quit", True, GREEN)
-        
-        screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 200))
-        screen.blit(msg1, (SCREEN_WIDTH//2 - msg1.get_width()//2, 350))
-        screen.blit(msg2, (SCREEN_WIDTH//2 - msg2.get_width()//2, 450))
-        
-        pygame.display.flip()
-        clock.tick(FPS)
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == pygame.K_r:
-                    return  # Return to menu
+                        waiting = False
 
 if __name__ == "__main__":
     main()
