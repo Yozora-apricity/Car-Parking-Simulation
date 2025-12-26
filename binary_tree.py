@@ -1,6 +1,7 @@
-import pygame
+import tkinter as tk
+from tkinter import ttk
 import random
-import sys
+import string
 
 # --- BINARY TREE LOGIC ---
 class BinaryTreeNode:
@@ -10,104 +11,62 @@ class BinaryTreeNode:
         self.right = None
 
 def ltr(node): # In-order
-    if not node: return []
-    return ltr(node.left) + [node.value] + ltr(node.right)
+    if node is None:
+        return []
+    else:
+        left_node = ltr(node.left)
+        current_node = [node.value] if node.value != " " else []
+        right_node = ltr(node.right)
+        return left_node + current_node + right_node
 
 def tlr(node): # Pre-order
-    if not node: return []
-    return [node.value] + tlr(node.left) + tlr(node.right)
+    if node is None:
+        return []
+    else:
+        current_node = [node.value] if node.value != " " else []
+        left_node = tlr(node.left)
+        right_node = tlr(node.right)
+        return current_node + left_node + right_node
 
 def lrt(node): # Post-Order
-    if not node: return []
-    return lrt(node.left) + lrt(node.right) + [node.value]
+    if node is None:
+        return []
+    else:
+        left_node = lrt(node.left)
+        right_node = lrt(node.right)
+        current_node = [node.value] if node.value != " " else []
+        return left_node + right_node + current_node
 
 class BinaryTreeOrder:
     def __init__(self):
         self.root = None
+        self.nodes_list = []
+
+    def tree_level_value(self, char_val):
+        self.nodes_list.append(char_val)
+        self._level_order_insertion(self.nodes_list)
 
     def tree_level_order(self, values):
         if not values:
             self.root = None
             return
-
-        self.root = BinaryTreeNode(values[0])
-        next_node_value = [self.root]
-        node_index = 1
-
-        while next_node_value and node_index < len(values):
-            node = next_node_value.pop(0)
-
-            if node_index < len(values):
-                node.left = BinaryTreeNode(values[node_index])
-                next_node_value.append(node.left)
-                node_index += 1
-
-            if node_index < len(values):
-                node.right = BinaryTreeNode(values[node_index])
-                next_node_value.append(node.right)
-                node_index += 1
-
-# --- GLOBAL CONSTANTS ---
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
-FPS = 30
-
-# VISUAL CONSTANTS
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (50, 50, 50)
-LIGHT_GRAY = (200, 200, 200)
-DARK_GRAY = (40, 40, 40)
-GREEN = (0, 255, 0)
-CYAN = (0, 255, 255)
-ORANGE = (255, 165, 0)
-RED = (255, 50, 50)
-
-# --- BINARY TREE MENU ---
-class BinaryTreeMenu:
-    def __init__(self, screen):
-        self.screen = screen
-        self.font_title = pygame.font.SysFont("arial", 48)
-        self.font_menu = pygame.font.SysFont("arial", 26)
-
-    def draw_text_center(self, text, font, color, y):
-        render = font.render(text, True, color)
-        x = SCREEN_WIDTH // 2 - render.get_width() // 2
-        self.screen.blit(render, (x, y))
-
-    def draw(self):
-        self.screen.fill(DARK_GRAY)
-
-        self.draw_text_center("Binary Tree Menu", self.font_title, WHITE, 180)
-        self.draw_text_center("Mode 1: Letters", self.font_menu, LIGHT_GRAY, 300)
-        self.draw_text_center("Mode 2: Numbers", self.font_menu, LIGHT_GRAY, 340)
-        self.draw_text_center("Press the number for the mode you want",
-                              self.font_menu, WHITE, 400)
-        self.draw_text_center("Press ESC to Quit", self.font_menu, RED, 460)
-
-        pygame.display.flip()
-
-# --- MAIN ---
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Binary Tree Menu")
-
-    menu = BinaryTreeMenu(screen)
-    clock = pygame.time.Clock()
-
-    running = True
-    while running:
-        clock.tick(FPS)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        menu.draw()
-
-    pygame.quit()
-    sys.exit()
+        nodes = [BinaryTreeNode(v) for v in values]
+        for i in range(len(nodes)):
+            left_idx = 2 * i + 1
+            right_idx = 2 * i + 2
+            if left_idx < len(nodes):
+                nodes[i].left = nodes[left_idx]
+            if right_idx < len(nodes):
+                nodes[i].right = nodes[right_idx]
+        self.root = nodes[0]
 
 if __name__ == "__main__":
-    main()
+    tree = BinaryTreeOrder()
+
+    # Example level-order values
+    values = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+    tree.tree_level_order(values)
+
+    print("In-order (LTR):", ltr(tree.root))
+    print("Pre-order (TLR):", tlr(tree.root))
+    print("Post-order (LRT):", lrt(tree.root))
