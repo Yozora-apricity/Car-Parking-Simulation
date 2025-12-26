@@ -21,7 +21,7 @@ class Stack:
 class Car():
     def __init__(self, manual_plate = None):
         self.plate_number = manual_plate if manual_plate else generate_plate_number(self)
-        self.arrivals = 1
+        self.arrivals = 0
         self.departures = 0
 
     def remove_car(self, stack, target):
@@ -29,20 +29,12 @@ class Car():
             return False
 
         top_car = stack.pop()
-        top_car.departures += 1
 
         if top_car.plate_number == target:
+            top_car.departures += 1
+            print(f"Arrivals: {top_car.arrivals}, Departures: {top_car.departures}")
             return True
 
         found = self.remove_car(stack, target)
-
-        if found:
-            stack.push(top_car)
-            top_car.arrivals += 1
-            print(f"Car {top_car.plate_number} re-entered the stack.")
-            print(f"Arrivals: {top_car.arrivals}, Departures: {top_car.departures}")
-        else:
-            stack.push(top_car)
-            top_car.departures -= 1
-
+        stack.push(top_car)
         return found
