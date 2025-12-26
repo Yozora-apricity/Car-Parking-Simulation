@@ -1,3 +1,5 @@
+from plate_number_generator import generate_plate_number
+
 class Queue:
     def __init__(self):
         self.queue = []
@@ -7,12 +9,12 @@ class Queue:
 
     def dequeue(self):
         if self.isEmpty():
-            return "Queue is empty"
+            return None
         return self.queue.pop(0)
 
     def peek(self):
         if self.isEmpty():
-            return "Queue is empty"
+            return None
         return self.queue[0]
 
     def isEmpty(self):
@@ -21,32 +23,31 @@ class Queue:
     def size(self):
         return len(self.queue)
 
+class Car():
+    def __init__(self, manual_plate = None):
+        self.plate_number = manual_plate if manual_plate else generate_plate_number(self)
+        self.arrivals = 1
+        self.departures = 0
 
-# Create a queue
-myQueue = Queue()
-while True:
-    try:
-        queue_count = int(input("How many values would you like to input? (1-10): "))
-        if 1 <= queue_count <= 10:
-            break
+    def remove_car(self, queue, target):
+        if queue.isEmpty():
+            return False
+
+        front_car = queue.dequeue()
+        front_car.departures += 1
+
+        if front_car.plate_number == target:
+            return True
+
+        found = self.remove_car(queue, target)
+
+        if found:
+            queue.enqueue(front_car)
+            front_car.arrivals += 1
+            print(f"Car {front_car.plate_number} re-entered the queue.")
+            print(f"Arrivals: {front_car.arrivals}, Departures: {front_car.departures}")
         else:
-            print("Please limit your input to 10 only.")
-    except ValueError:
-        print("Error: Invalid input. Please enter a number")
+            queue.push(top_car)
+            front_car.departures -= 1
 
-for i in range(queue_count):
-    value = input(f"Enter value for Node {i+1} of {queue_count}: ")
-    myQueue.enqueue(value)
-
-print("\n")
-print("Queue Results")
-print("Queue: ", myQueue.queue)
-print("Dequeue: ", myQueue.dequeue())
-print("Peek: ", myQueue.peek())
-print("isEmpty: ", myQueue.isEmpty())
-print("Size: ", myQueue.size())
-
-# Comments:
-    # 1. Add a code that ask user which value are to be dequeue; If they want to dequeue all
-    #    elements until the queue is empty
-    # 2. Add random to generate values if user doesn't want to manually input values
+        return found
