@@ -5,7 +5,7 @@ import sys
 import subprocess
 
 class MainMenu:
-    def__init__(self, root):
+    def __init__(self, root):
         self.root = root
         self.root.title("Main Menu")
         self.root.geometry("500x500")
