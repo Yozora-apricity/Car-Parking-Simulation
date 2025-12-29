@@ -103,3 +103,22 @@ class MainMenu:
             fg="gray"
         )
         footer.pack(side=tk.BOTTOM, pady=10)
+    
+    def center_window(self, width, height):
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width // 2) - (width // 2)
+        y = (screen_height // 2) - (height // 2)
+        self.root.geometry(f'{width}x{height}+{x}+{y}')
+        
+    def launch_script(self, filename):
+        try:
+            if not os.path.exists(filename):
+                messagebox.showerror("Error", f"File '{filename}' not found in current directory.")
+                return
+
+            subprocess.Popen([sys.executable, filename])
+            print(f"Launched {filename}")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to launch {filename}:\n{e}")
