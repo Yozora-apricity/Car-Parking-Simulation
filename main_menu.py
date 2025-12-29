@@ -11,7 +11,7 @@ class MainMenu:
         self.root.geometry("500x500")
         self.root.configure(bg="black")
         
-        self.center_window(500, 500)
+        self.center_window(600, 700)
         
         title_label = tk.Label(
             self.root,
