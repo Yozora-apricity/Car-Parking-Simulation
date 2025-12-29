@@ -8,7 +8,7 @@ class MainMenu:
     def __init__(self, root):
         self.root = root
         self.root.title("Main Menu")
-        self.root.geometry("500x500")
+        self.root.geometry("600x700")
         self.root.configure(bg="black")
         
         self.center_window(600, 700)
