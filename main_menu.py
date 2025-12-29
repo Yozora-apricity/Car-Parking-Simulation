@@ -122,3 +122,30 @@ class MainMenu:
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to launch {filename}:\n{e}")
+            
+    def launch_parking_sim(self):
+        script_path = os.path.join("car_parking_simulation", "car_parking_dashboard.py")
+        work_dir = "car_parking_simulation"
+
+        # Check if file exists
+        if not os.path.exists(script_path):
+            messagebox.showerror("Error", f"File '{script_path}' not found.\nMake sure the folder structure is correct.")
+            return
+
+        try:
+            # Command to open a new terminal window varies by OS
+            if os.name == 'nt':  # Windows
+                cmd = f'start cmd /k "cd {work_dir} && {sys.executable} car_parking_dashboard.py"'
+                os.system(cmd)
+            else:
+                subprocess.Popen([sys.executable, script_path], cwd=work_dir)
+            
+            print(f"Launched {script_path}")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to launch Parking Simulation:\n{e}")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = MainMenu(root)
+    root.mainloop()
