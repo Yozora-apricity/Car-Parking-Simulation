@@ -1,6 +1,7 @@
-import pygame
+import tkinter as tk
+from tkinter import ttk
 import random
-import sys
+import string
 
 # --- BINARY TREE LOGIC ---
 class BinaryTreeNode:
@@ -10,104 +11,182 @@ class BinaryTreeNode:
         self.right = None
 
 def ltr(node): # In-order
-    if not node: return []
-    return ltr(node.left) + [node.value] + ltr(node.right)
+    if node is None:
+        return []
+    else:
+        left_node = ltr(node.left)
+        current_node = [node.value] if node.value != " " else []
+        right_node = ltr(node.right)
+        return left_node + current_node + right_node
 
 def tlr(node): # Pre-order
-    if not node: return []
-    return [node.value] + tlr(node.left) + tlr(node.right)
+    if node is None:
+        return []
+    else:
+        current_node = [node.value] if node.value != " " else []
+        left_node = tlr(node.left)
+        right_node = tlr(node.right)
+        return current_node + left_node + right_node
 
 def lrt(node): # Post-Order
-    if not node: return []
-    return lrt(node.left) + lrt(node.right) + [node.value]
+    if node is None:
+        return []
+    else:
+        left_node = lrt(node.left)
+        right_node = lrt(node.right)
+        current_node = [node.value] if node.value != " " else []
+        return left_node + right_node + current_node
 
 class BinaryTreeOrder:
     def __init__(self):
         self.root = None
+        self.nodes_list = []
+
+    def tree_level_value(self, char_val):
+        self.nodes_list.append(char_val)
+        self._level_order_insertion(self.nodes_list)
 
     def tree_level_order(self, values):
         if not values:
             self.root = None
             return
+        nodes = [BinaryTreeNode(v) for v in values]
+        for i in range(len(nodes)):
+            left_idx = 2 * i + 1
+            right_idx = 2 * i + 2
+            if left_idx < len(nodes):
+                nodes[i].left = nodes[left_idx]
+            if right_idx < len(nodes):
+                nodes[i].right = nodes[right_idx]
+        self.root = nodes[0]
 
-        self.root = BinaryTreeNode(values[0])
-        next_node_value = [self.root]
-        node_index = 1
+# --- BINARY TREE  UI ---
+class BinaryTreeUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Binary Tree")
+        self.root.geometry("1000x650")
+        self.root.configure(bg="#f8fafc")
 
-        while next_node_value and node_index < len(values):
-            node = next_node_value.pop(0)
+        self.main_frame = tk.Frame(self.root, bg="#f8fafc")
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
 
-            if node_index < len(values):
-                node.left = BinaryTreeNode(values[node_index])
-                next_node_value.append(node.left)
-                node_index += 1
+        self.root.bind("<Escape>", lambda e: self.root.quit())
 
-            if node_index < len(values):
-                node.right = BinaryTreeNode(values[node_index])
-                next_node_value.append(node.right)
-                node_index += 1
+        self.main_menu_screen()
 
-# --- GLOBAL CONSTANTS ---
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
-FPS = 30
+    def clear_screen(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
 
-# VISUAL CONSTANTS
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (50, 50, 50)
-LIGHT_GRAY = (200, 200, 200)
-DARK_GRAY = (40, 40, 40)
-GREEN = (0, 255, 0)
-CYAN = (0, 255, 255)
-ORANGE = (255, 165, 0)
-RED = (255, 50, 50)
+    def main_menu_screen(self):
+        self.clear_screen()
 
-# --- BINARY TREE MENU ---
-class BinaryTreeMenu:
-    def __init__(self, screen):
-        self.screen = screen
-        self.font_title = pygame.font.SysFont("arial", 48)
-        self.font_menu = pygame.font.SysFont("arial", 26)
+        tk.Label(
+            self.main_frame,
+            text="BINARY TREE",
+            font=("Arial", 40, "bold"),
+            bg="#f8fafc",
+            fg="#1e293b"
+        ).pack(pady=200)
 
-    def draw_text_center(self, text, font, color, y):
-        render = font.render(text, True, color)
-        x = SCREEN_WIDTH // 2 - render.get_width() // 2
-        self.screen.blit(render, (x, y))
+        tk.Label(
+            self.main_frame,
+            text="Press ENTER to Start",
+            font=("Arial", 14),
+            bg="#f8fafc",
+            fg="#64748b"
+        ).pack()
 
-    def draw(self):
-        self.screen.fill(DARK_GRAY)
+        self.root.bind("<Return>", lambda e: self.ask_binary_tree_levels())
+    
+    def ask_binary_tree_levels(self):
+        self.clear_screen()
 
-        self.draw_text_center("Binary Tree Menu", self.font_title, WHITE, 180)
-        self.draw_text_center("Mode 1: Letters", self.font_menu, LIGHT_GRAY, 300)
-        self.draw_text_center("Mode 2: Numbers", self.font_menu, LIGHT_GRAY, 340)
-        self.draw_text_center("Press the number for the mode you want",
-                              self.font_menu, WHITE, 400)
-        self.draw_text_center("Press ESC to Quit", self.font_menu, RED, 460)
+        center_frame = tk.Frame(self.main_frame, bg="#f8fafc")
+        center_frame.pack(expand=True)
 
-        pygame.display.flip()
+        tk.Label(
+            center_frame,
+            text="How many levels would you like?",
+            font=("Arial", 24, "bold"),
+            bg="#f8fafc",
+            fg="#1e293b"
+        ).pack(pady=10)
 
-# --- MAIN ---
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Binary Tree Menu")
+        tk.Label(
+            center_frame,
+            text="(Maximum: 5)",
+            font=("Arial", 14),
+            bg="#f8fafc",
+            fg="#64748b"
+        ).pack(pady=5)
 
-    menu = BinaryTreeMenu(screen)
-    clock = pygame.time.Clock()
+        self.level_entry = tk.Entry(
+            center_frame,
+            font=("Arial", 15),
+            width=7,
+            justify="center"
+        )
+        self.level_entry.pack(pady=15)
+        self.level_entry.focus_set()
 
-    running = True
-    while running:
-        clock.tick(FPS)
+        button_frame = tk.Frame(center_frame, bg="#f8fafc")
+        button_frame.pack(pady=10)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        tk.Button(
+            button_frame,
+            text="CONFIRM",
+            font=("Arial", 10, "bold"),
+            command=self.confirm_level
+        ).pack(side=tk.LEFT, padx=10)
 
-        menu.draw()
+        tk.Button(
+            button_frame,
+            text="RANDOM",
+            font=("Arial", 10, "bold"),
+            command=self.random_level
+        ).pack(side=tk.LEFT, padx=10)
 
-    pygame.quit()
-    sys.exit()
+        self.feedback_label = tk.Label(
+            center_frame,
+            text="",
+            font=("Arial", 12),
+            bg="#f8fafc"
+        )
+        self.feedback_label.pack(pady=10)
+
+    def confirm_level(self):
+        value = self.level_entry.get()
+
+        if value.isdigit() and 1 <= int(value) <= 5:
+            level = int(value)
+            self.feedback_label.config(
+                text=f"Level {level} selected!",
+                fg="#16a34a"
+            )
+        else:
+            self.feedback_label.config(
+                text="Invalid input! Please enter a number from 1 to 5 only.",
+                fg="#dc2626"
+            )
+
+    def random_level(self):
+        level = random.randint(1, 5)
+        self.level_entry.delete(0, tk.END)
+        self.level_entry.insert(0, str(level))
+        self.feedback_label.config(
+            text=f"Level {level} generated!",
+            fg="#2563eb"
+        )
 
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    app = BinaryTreeUI(root)
+    root.mainloop()
+
+# TODO: Once user pressed enter, it will direct them to an option of how many levels (max: 5) is the binary tree (can be random generated) - DONE
+#       After choosing the level, it will open to the page where user can create the binary tree, can be random generated or manual
+#       - Show the level and number of nodes for guide (Ex. Level: [#] | Nodes: #/31
+#       - Have choices to reset, quit, or go back to main menu
+#       - Will show the TLR, LRT, and LTR of the binary tree
