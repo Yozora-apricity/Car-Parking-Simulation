@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import random
 
 # ---------------- BST LOGIC ---------------- #
 class Node:
@@ -19,7 +20,7 @@ class BST:
             return Node(value)
         if value < node.value:
             node.left = self._insert(node.left, value)
-        elif value > node.value:
+        else:  # allow duplicates on right
             node.right = self._insert(node.right, value)
         return node
 
