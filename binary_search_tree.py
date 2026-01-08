@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import random
+from tkinter import messagebox
 
 # ---------------- BST LOGIC ---------------- #
 class Node:
@@ -158,16 +159,32 @@ class BSTVisualizer:
             self.entry.delete(0, tk.END)
             self.redraw()
         except ValueError:
-            pass
+            messagebox.showerror("Invalid Input", "Please enter a valid integer.")
 
     def generate_random(self):
         try:
             count = int(self.rand_count.get())
+
+            if count < 10 or count > 30:
+                messagebox.showerror(
+                    "Invalid Node Count",
+                    "Please enter a number between 10 and 30.",
+                    parent=self.root
+                )
+                return
+
             for _ in range(count):
                 self.bst.insert(random.randint(0, 200))
+
             self.redraw()
+
         except ValueError:
-            pass
+            messagebox.showerror(
+                "Invalid Input",
+                "Please enter a valid integer.",
+                parent=self.root
+            )
+
 
     def clear_tree(self):
         self.bst.root = None
