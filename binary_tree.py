@@ -44,7 +44,7 @@ class BinaryTreeOrder:
 
     def tree_level_value(self, char_val):
         self.nodes_list.append(char_val)
-        self._level_order_insertion(self.nodes_list)
+        self.tree_level_order(self.nodes_list)
 
     def tree_level_order(self, values):
         if not values:
@@ -72,7 +72,7 @@ class BinaryTreeUI:
         self.main_frame.pack(fill=tk.BOTH, expand=True)
 
         self.root.bind("<Escape>", lambda e: self.root.quit())
-
+        self.root.bind("<Tab>", lambda e: self.main_menu_screen())
         self.main_menu_screen()
 
     def clear_screen(self):
@@ -102,6 +102,7 @@ class BinaryTreeUI:
     
     def ask_binary_tree_levels(self):
         self.clear_screen()
+        self.root.unbind("<Return>")
 
         center_frame = tk.Frame(self.main_frame, bg="#f8fafc")
         center_frame.pack(expand=True)
@@ -156,6 +157,8 @@ class BinaryTreeUI:
         )
         self.feedback_label.pack(pady=10)
 
+        self.root.bind("<Return>", lambda e: self.confirm_level())
+
     def confirm_level(self):
         value = self.level_entry.get()
 
@@ -165,6 +168,7 @@ class BinaryTreeUI:
                 text=f"Level {level} selected!",
                 fg="#16a34a"
             )
+            self.root.after(800, lambda: self.start_binary_tree_page(self, level))
         else:
             self.feedback_label.config(
                 text="Invalid input! Please enter a number from 1 to 5 only.",
@@ -175,10 +179,59 @@ class BinaryTreeUI:
         level = random.randint(1, 5)
         self.level_entry.delete(0, tk.END)
         self.level_entry.insert(0, str(level))
-        self.feedback_label.config(
-            text=f"Level {level} generated!",
-            fg="#2563eb"
+        self.confirm_level()
+    
+    def start_binary_tree_page(self, level):
+        self.clear_screen()
+        self.root.unbind("<Return>")
+        self.target_level = level
+        self.max_nodes = (2 ** level) - 1
+        self.tree_logic = BinaryTreeOrder()
+
+        header = tk.Frame(
+            self.main_frame,
+            bg="0f172a",
+            height=40
         )
+        header.pack(fill=tk.X)
+
+        self.node_count_lbl = tk.Label(
+            header,
+            text=f"Level {level} | Node: 0/{self.max_nodes}",
+            fg="white",
+            bg="#0f172a",
+            font=("Arial", 11, "bold")
+        )
+        self.node_count_lbl.pack(
+            side=tk.LEFT, 
+            padx=15
+        )
+
+        menu_choices = tk.Label(
+            header,
+            text="ESC: Quit | Ctrl: Reset | Tab: Menu",
+            fg="#94a3b8",
+            bg="#0f172a",
+            font=("Arial", 10)
+        )
+        menu_choices.pack(
+            side=tk.RIGHT,
+            padx=15
+        )
+
+        input_container = tk.Frame(
+            self.main_frame,
+            bg="#f8fafc"
+        )
+        input_container.pack(pady=15)
+
+        self.input_entry = ttk.Entry(
+            input_container,
+            width=15,
+            font=("Arial", 12)
+        )
+        self.input_entry.pack(side=tk.LEFT, padx=5)
+        self.input_entry.focus_set()
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -187,6 +240,6 @@ if __name__ == "__main__":
 
 # TODO: Once user pressed enter, it will direct them to an option of how many levels (max: 5) is the binary tree (can be random generated) - DONE
 #       After choosing the level, it will open to the page where user can create the binary tree, can be random generated or manual
-#       - Show the level and number of nodes for guide (Ex. Level: [#] | Nodes: #/31
-#       - Have choices to reset, quit, or go back to main menu
+#       - Show the level and number of nodes for guide (Ex. Level: [#] | Nodes: #/31) - DONE
+#       - Have choices to reset, quit, or go back to main menu - Still need to add functionality
 #       - Will show the TLR, LRT, and LTR of the binary tree
