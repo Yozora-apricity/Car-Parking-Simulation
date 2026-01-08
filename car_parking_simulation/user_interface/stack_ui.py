@@ -1,28 +1,64 @@
-import sys
-import os
 import tkinter as tk
 from tkinter import ttk, messagebox
+import random
+import time
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
+# --- INTERNAL LOGIC ---
 
-from car_park_stack import Stack, Car
+class Car:
+    def __init__(self, plate_number=None):
+        if plate_number:
+            self.plate_number = plate_number
+        else:
+            self.plate_number = f"{random.randint(100, 999)}-{random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')}{random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')}"
+        
+        self.arrivals = 0
+        self.departures = 0
+
+    def __str__(self):
+        return f"Car({self.plate_number})"
+
+class Stack:
+    def __init__(self):
+        self.stack = []
+
+    def push(self, car):
+        self.stack.append(car)
+
+    def pop(self):
+        if not self.isEmpty():
+            return self.stack.pop()
+        return None
+
+    def peek(self):
+        if not self.isEmpty():
+            return self.stack[-1]
+        return None
+
+    def isEmpty(self):
+        return len(self.stack) == 0
+
+    def size(self):
+        return len(self.stack)
+
+# --- UI CODE ---
 
 class StackUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Stack Visualizer (Car Parking)")
-        self.root.geometry("600x700")
+        self.root.geometry("900x750") 
         self.root.configure(bg="#f0f0f0")
 
-        # Initialize the Stack Logic
-        self.stack = Stack()
+        # Initialize Stacks
+        self.stack = Stack()       # Main Parking Lane
+        self.temp_stack = Stack()  # Auxiliary/Temporary Lane
+        self.MAX_CAPACITY = 8 
 
         # Title
         tk.Label(
             self.root, 
-            text="Parking Stack", 
+            text="Stack Parking Simulation", 
             font=("Arial", 20, "bold"), 
             bg="#f0f0f0"
         ).pack(pady=10)
@@ -31,7 +67,7 @@ class StackUI:
         control_frame = tk.Frame(self.root, bg="#d9d9d9", padx=10, pady=10)
         control_frame.pack(fill=tk.X, padx=20, pady=10)
 
-        # Row 1: Push Operations (Arrivals)
+        # Row 1: Push Operations
         row1 = tk.Frame(control_frame, bg="#d9d9d9")
         row1.pack(fill=tk.X, pady=5)
         
@@ -42,7 +78,7 @@ class StackUI:
         ttk.Button(row1, text="Arrive (Manual)", command=self.push_manual).pack(side=tk.LEFT, padx=5)
         ttk.Button(row1, text="Arrive (Random)", command=self.push_random).pack(side=tk.LEFT, padx=5)
 
-        # Row 2: Pop/Remove Operations (Departures)
+        # Row 2: Pop/Remove Operations
         row2 = tk.Frame(control_frame, bg="#d9d9d9")
         row2.pack(fill=tk.X, pady=5)
 
@@ -50,108 +86,188 @@ class StackUI:
         
         self.remove_entry = ttk.Entry(row2, width=15)
         self.remove_entry.pack(side=tk.LEFT, padx=(20, 5))
-        ttk.Button(row2, text="Remove Specific", command=self.remove_specific).pack(side=tk.LEFT, padx=5)
+        ttk.Button(row2, text="Remove Specific (Animate)", command=self.remove_specific_animated).pack(side=tk.LEFT, padx=5)
 
         # Row 3: Info Display
-        self.info_label = tk.Label(control_frame, text="Total Cars: 0", bg="#d9d9d9", font=("Arial", 10))
+        self.info_label = tk.Label(control_frame, text=f"Total Cars: 0 / {self.MAX_CAPACITY}", bg="#d9d9d9", font=("Arial", 10))
         self.info_label.pack(anchor="w", pady=5)
 
         # --- Canvas for Visualization ---
         self.canvas = tk.Canvas(self.root, bg="white", highlightthickness=1, highlightbackground="black")
         self.canvas.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
+        
+        self.canvas.bind("<Configure>", lambda event: self.update_display())
+
+    def draw_car(self, car, x_center, y_bottom, car_width=200, car_height=50):
+        start_x = x_center - (car_width // 2)
+        y_pos = y_bottom - car_height 
+        
+        body_color = "#4a90e2"
+        cabin_color = "#8abef0"
+        
+        cabin_h = car_height * 0.4
+        body_h = car_height * 0.6
+        cabin_margin = car_width * 0.2
+
+        # Cabin
+        cabin_coords = [
+            start_x + cabin_margin, y_pos,                         
+            start_x + car_width - cabin_margin, y_pos,             
+            start_x + car_width - (cabin_margin/2), y_pos + cabin_h, 
+            start_x + (cabin_margin/2), y_pos + cabin_h            
+        ]
+        self.canvas.create_polygon(cabin_coords, fill=cabin_color, outline="black")
+
+        # Body
+        body_y_start = y_pos + cabin_h
+        self.canvas.create_rectangle(
+            start_x, body_y_start,
+            start_x + car_width, body_y_start + body_h,
+            fill=body_color, outline="black"
+        )
+
+        # Wheels
+        wheel_radius = 10
+        wheel_y_center = body_y_start + body_h
+        self.canvas.create_oval(start_x + 30 - 10, wheel_y_center - 10, start_x + 30 + 10, wheel_y_center + 10, fill="black")
+        self.canvas.create_oval(start_x + car_width - 30 - 10, wheel_y_center - 10, start_x + car_width - 30 + 10, wheel_y_center + 10, fill="black")
+        
+        # Text
+        info_text = f"{car.plate_number} | A:{car.arrivals} D:{car.departures}"
+        self.canvas.create_text(x_center, body_y_start + (body_h / 2), text=info_text, fill="white", font=("Arial", 9, "bold"))
+
+    def draw_lane_structure(self, x_center, bottom_y, width, height, label):
+        c_left = x_center - (width // 2) - 10
+        c_right = x_center + (width // 2) + 10
+        c_top = bottom_y - height - 10
+        
+        self.canvas.create_line(
+            c_left, c_top, c_left, bottom_y, c_right, bottom_y, c_right, c_top,
+            width=5, fill="#555555", capstyle="round"
+        ) # type: ignore
+        self.canvas.create_text(x_center, bottom_y + 20, text=label, fill="#555555", font=("Arial", 10, "bold"))
 
     def update_display(self):
-        #Redraws the entire stack based on the current data.
         self.canvas.delete("all")
-        self.info_label.config(text=f"Total Cars: {self.stack.size()}")
+        self.info_label.config(text=f"Total Cars: {self.stack.size()} / {self.MAX_CAPACITY}")
         
-        if self.stack.isEmpty():
-            self.canvas.create_text(
-                300, 300, 
-                text="Parking Lot Empty", 
-                fill="gray", 
-                font=("Arial", 14)
-            )
-            return
+        w = self.canvas.winfo_width()
+        h = self.canvas.winfo_height()
+        if h < 100: h = 500
+        if w < 100: w = 860
 
-        # Draw Stack (Bottom to Top visual representation)
-        car_width = 200
-        car_height = 40
-        start_x = 200
-        # Start drawing from the bottom of the canvas upwards
-        start_y = 550  
+        car_w, car_h, gap = 200, 50, 15
+        bottom_margin = 40
+        lane_bottom_y = h - bottom_margin
+        
+        center_main = w * 0.33  
+        center_temp = w * 0.66  
 
-        # Enumerate gives us index (i) and the car object
+        stack_height_pixels = self.MAX_CAPACITY * (car_h + gap)
+
+        # --- DRAW MAIN LANE ---
+        self.draw_lane_structure(center_main, lane_bottom_y, car_w, stack_height_pixels, "MAIN PARKING (LIFO)")
+        
         for i, car in enumerate(self.stack.stack):
-            y_pos = start_y - (i * (car_height + 5))
-            
-            # Draw Car Body (Rectangle)
-            self.canvas.create_rectangle(
-                start_x, y_pos, 
-                start_x + car_width, y_pos + car_height, 
-                fill="#4a90e2", outline="black"
-            )
-            
-            # Draw Car Info (Text)
-            info_text = f"{car.plate_number} | A:{car.arrivals} D:{car.departures}"
-            self.canvas.create_text(
-                start_x + car_width//2, y_pos + car_height//2, 
-                text=info_text, 
-                fill="white", 
-                font=("Arial", 10, "bold")
-            )
+            y_loc = lane_bottom_y - (i * (car_h + gap)) - 5 
+            self.draw_car(car, center_main, y_loc)
+
+        # --- DRAW AUXILIARY LANE ---
+        self.draw_lane_structure(center_temp, lane_bottom_y, car_w, stack_height_pixels, "AUXILIARY / TEMP")
+
+        for i, car in enumerate(self.temp_stack.stack):
+            y_loc = lane_bottom_y - (i * (car_h + gap)) - 5
+            self.draw_car(car, center_temp, y_loc)
+
+        if self.stack.isEmpty() and self.temp_stack.isEmpty():
+             self.canvas.create_text(center_main, h/2, text="Empty", fill="gray", font=("Arial", 14))
 
     def push_manual(self):
+        if self.stack.size() >= self.MAX_CAPACITY:
+            messagebox.showwarning("Parking Full", f"The parking lot is full.")
+            return
+
         plate = self.plate_entry.get().strip().upper()
         if not plate:
-            messagebox.showwarning("Input Error", "Please enter a plate number.")
+            messagebox.showwarning("Input Error", "Enter a plate number.")
             return
         
         new_car = Car(plate)
-        new_car.arrivals += 1 # Increment arrival count manually since logic differs slightly in UI
+        new_car.arrivals += 1 
         self.stack.push(new_car)
-        
         self.plate_entry.delete(0, tk.END)
         self.update_display()
 
     def push_random(self):
-        new_car = Car() # Auto-generates plate inside __init__
+        if self.stack.size() >= self.MAX_CAPACITY:
+            messagebox.showwarning("Parking Full", "Parking lot is full.")
+            return
+        new_car = Car() 
         new_car.arrivals += 1
         self.stack.push(new_car)
         self.update_display()
 
     def pop_car(self):
-        
         car = self.stack.pop()
-        
-        if car is None:
+        if car:
+            messagebox.showinfo("Departed", f"Car {car.plate_number} departed.")
+            self.update_display()
+        else:
             messagebox.showinfo("Info", "No cars to depart.")
-            return
-        
-        messagebox.showinfo("Departed", f"Car {car.plate_number} departed.")
-        self.update_display()
-        
-    def remove_specific(self):
+
+    def remove_specific_animated(self):
         target = self.remove_entry.get().strip().upper()
         if not target:
-            messagebox.showwarning("Input Error", "Please enter a plate number to remove.")
+            messagebox.showwarning("Input", "Enter plate to remove.")
             return
-            
+        
         if self.stack.isEmpty():
             messagebox.showinfo("Info", "Lane is empty.")
             return
 
-        # Use the logic defined in your Car class to remove a specific car recursively
-        temp_car_logic = Car()
-        found = temp_car_logic.remove_car(self.stack, target)
+        found = False
         
+        while not self.stack.isEmpty():
+            top_car = self.stack.peek()
+            
+            # --- FIX 1: Explicit check if peek returns None ---
+            if top_car is None:
+                break
+            
+            if top_car.plate_number == target:
+                found = True
+                break 
+            else:
+                moving_car = self.stack.pop()
+                if moving_car: # Safety check
+                    self.temp_stack.push(moving_car)
+                
+                self.update_display()
+                self.root.update() 
+                time.sleep(0.5)    
+
         if found:
-            messagebox.showinfo("Success", f"Car {target} has successfully departed.")
+            removed_car = self.stack.pop()
+            # --- FIX 2: Explicit check before accessing property ---
+            if removed_car:
+                messagebox.showinfo("Found", f"Car {removed_car.plate_number} is leaving now.")
+            
+            self.update_display()
+            self.root.update()
+            time.sleep(0.5)
         else:
-            messagebox.showerror("Not Found", f"Car {target} not found in the lane.")
+            messagebox.showerror("Not Found", f"Car {target} not found. Moving cars back.")
+
+        while not self.temp_stack.isEmpty():
+            return_car = self.temp_stack.pop()
+            if return_car: # Safety check
+                self.stack.push(return_car)
+            
+            self.update_display()
+            self.root.update()
+            time.sleep(0.5)
         
         self.remove_entry.delete(0, tk.END)
-        self.update_display()
 
 if __name__ == "__main__":
     root = tk.Tk()
