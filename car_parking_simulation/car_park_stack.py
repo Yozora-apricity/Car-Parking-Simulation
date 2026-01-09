@@ -25,7 +25,7 @@ class Stack:
 
 class Car():
     def __init__(self, manual_plate = None):
-        self.plate_number = manual_plate if manual_plate else generate_plate_number(self)
+        self.plate_number = manual_plate if manual_plate else generate_plate_number()
         self.arrivals = 0
         self.departures = 0
 
