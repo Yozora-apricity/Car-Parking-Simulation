@@ -295,14 +295,27 @@ class BinaryTreeUI:
         self.tree_logic.tree_level_value(char)
         self.input_entry.delete(0, tk.END)
         self.update_view()
-        
+    
+    def handle_random_insert(self):
+        if len(self.tree_logic.nodes_list) >= self.max_nodes: return
+
+        if random.choice([True, False]):
+            char = str(random.randint(0, 1000))
+        else:
+            char = random.choice(string.ascii_lowercase + string.digits)
+        self.tree_logic.tree_level_value(char)
+        self.update_view()
+
+    def reset_game(self):
+        self.start_binary_tree_page(self.target_level)
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = BinaryTreeUI(root)
     root.mainloop()
 
 # TODO: Once user pressed enter, it will direct them to an option of how many levels (max: 5) is the binary tree (can be random generated) - DONE
-#       After choosing the level, it will open to the page where user can create the binary tree, can be random generated or manual
+#       After choosing the level, it will open to the page where user can create the binary tree, can be random generated or manual - DONE
 #       - Show the level and number of nodes for guide (Ex. Level: [#] | Nodes: #/31) - DONE
 #       - Have choices to reset, quit, or go back to main menu - Still need to add functionality
 #       - Will show the TLR, LRT, and LTR of the binary tree
