@@ -168,7 +168,7 @@ class BinaryTreeUI:
                 text=f"Level {level} selected!",
                 fg="#16a34a"
             )
-            self.root.after(800, lambda: self.start_binary_tree_page(self, level))
+            self.root.after(800, lambda: self.start_binary_tree_page(level))
         else:
             self.feedback_label.config(
                 text="Invalid input! Please enter a number from 1 to 5 only.",
@@ -190,7 +190,7 @@ class BinaryTreeUI:
 
         header = tk.Frame(
             self.main_frame,
-            bg="0f172a",
+            bg="#0f172a",
             height=40
         )
         header.pack(fill=tk.X)
@@ -202,10 +202,7 @@ class BinaryTreeUI:
             bg="#0f172a",
             font=("Arial", 11, "bold")
         )
-        self.node_count_lbl.pack(
-            side=tk.LEFT, 
-            padx=15
-        )
+        self.node_count_lbl.pack(side=tk.LEFT, padx=15)
 
         menu_choices = tk.Label(
             header,
@@ -214,10 +211,7 @@ class BinaryTreeUI:
             bg="#0f172a",
             font=("Arial", 10)
         )
-        menu_choices.pack(
-            side=tk.RIGHT,
-            padx=15
-        )
+        menu_choices.pack(side=tk.RIGHT,padx=15)
 
         input_container = tk.Frame(
             self.main_frame,
@@ -232,6 +226,65 @@ class BinaryTreeUI:
         )
         self.input_entry.pack(side=tk.LEFT, padx=5)
         self.input_entry.focus_set()
+
+        ttk.Button(
+            input_container, 
+            text="Insert", 
+            command=self.handle_input
+        ).pack(side=tk.LEFT, padx=5)
+
+        ttk.Button(
+            input_container, 
+            text="Random", 
+            command=self.handle_random_insert
+        ).pack(side=tk.LEFT, padx=5)
+
+        self.game_feedback = tk.Label(
+            self.main_frame, 
+            text="", 
+            bg="#f8fafc", 
+            font=("Arial", 12, "bold")
+        )
+        self.game_feedback.pack(pady=5)
+
+        self.canvas = tk.Canvas(
+            self.main_frame, 
+            bg="white", 
+            height=400, 
+            highlightthickness=0)
+        self.canvas.pack(fill=tk.BOTH, expand=True, padx=40)
+
+        self.traversal_container = tk.Frame(
+            self.main_frame, 
+            bg="#f8fafc"
+        )
+        self.traversal_container.pack(fill=tk.X, padx=40, pady=10)
+
+        self.tlr_lbl = tk.Label(
+            self.traversal_container, 
+            text="TLR: ", 
+            font=("Arial", 11), 
+            bg="#f8fafc"
+        )
+        self.tlr_lbl.pack(anchor="w")
+
+        self.ltr_lbl = tk.Label(
+            self.traversal_container, 
+            text="LTR: ", 
+            font=("Arial", 11), 
+            bg="#f8fafc")
+        self.ltr_lbl.pack(anchor="w")
+
+        self.lrt_lbl = tk.Label(
+            self.traversal_container, 
+            text="LRT: ", 
+            font=("Arial", 11), 
+            bg="#f8fafc"
+        )
+        self.lrt_lbl.pack(anchor="w")
+
+        self.input_entry.bind("<Return>", lambda e: self.handle_input())
+        self.root.bind("<Control_L>", lambda e: self.reset_game())
 
 if __name__ == "__main__":
     root = tk.Tk()
