@@ -308,6 +308,53 @@ class BinaryTreeUI:
 
     def reset_game(self):
         self.start_binary_tree_page(self.target_level)
+    
+    def update_view(self):
+        count = len(self.tree_logic.nodes_list)
+        self.node_count_lbl.config(text=f"Level {self.target_level} | Node: {count}/{self.max_nodes}")
+        
+        if count == self.max_nodes:
+            self.game_feedback.config(text="Binary Tree completed!", fg="#16a34a")
+
+        self.canvas.delete("all")
+        if self.tree_logic.root:
+            self.draw_tree(self.tree_logic.root, 500, 50, 240)
+
+        self.tlr_lbl.config(text=f"TLR (Pre-order):  {' '.join(tlr(self.tree_logic.root))}")
+        self.ltr_lbl.config(text=f"LTR (In-order):   {' '.join(ltr(self.tree_logic.root))}")
+        self.lrt_lbl.config(text=f"LRT (Post-order): {' '.join(lrt(self.tree_logic.root))}")
+
+    def draw_tree(self, node, x, y, offset):
+        r = 18
+        if node.left:
+            self.canvas.create_line(
+                x, 
+                y, 
+                x - offset, y + 70, 
+                fill="#cbd5e1", 
+                width=2
+            )
+            self.draw_tree(node.left, x - offset, y + 70, offset // 2)
+        if node.right:
+            self.canvas.create_line(
+                x, 
+                y, 
+                x + offset, y + 70, 
+                fill="#cbd5e1", 
+                width=2
+            )
+            self.draw_tree(node.right, x + offset, y + 70, offset // 2)
+        if node.value != " ":
+            self.canvas.create_oval(
+                x-r, 
+                y-r, 
+                x+r, 
+                y+r, 
+                fill="#3b82f6", 
+                outline="#1d4ed8", 
+                width=2
+            )
+            self.canvas.create_text(x, y, text=str(node.value), fill="white", font=("Arial", 10, "bold"))
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -317,5 +364,5 @@ if __name__ == "__main__":
 # TODO: Once user pressed enter, it will direct them to an option of how many levels (max: 5) is the binary tree (can be random generated) - DONE
 #       After choosing the level, it will open to the page where user can create the binary tree, can be random generated or manual - DONE
 #       - Show the level and number of nodes for guide (Ex. Level: [#] | Nodes: #/31) - DONE
-#       - Have choices to reset, quit, or go back to main menu - Still need to add functionality
-#       - Will show the TLR, LRT, and LTR of the binary tree
+#       - Have choices to reset, quit, or go back to main menu - DONE
+#       - Will show the TLR, LRT, and LTR of the binary tree - DONE
