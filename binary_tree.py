@@ -263,7 +263,7 @@ class BinaryTreeUI:
         self.tlr_lbl = tk.Label(
             self.traversal_container, 
             text="TLR: ", 
-            font=("Arial", 11), 
+            font=("Arial", 11, "bold"), 
             bg="#f8fafc"
         )
         self.tlr_lbl.pack(anchor="w")
@@ -271,14 +271,14 @@ class BinaryTreeUI:
         self.ltr_lbl = tk.Label(
             self.traversal_container, 
             text="LTR: ", 
-            font=("Arial", 11), 
+            font=("Arial", 11, "bold"), 
             bg="#f8fafc")
         self.ltr_lbl.pack(anchor="w")
 
         self.lrt_lbl = tk.Label(
             self.traversal_container, 
             text="LRT: ", 
-            font=("Arial", 11), 
+            font=("Arial", 11, "bold"), 
             bg="#f8fafc"
         )
         self.lrt_lbl.pack(anchor="w")
@@ -286,6 +286,16 @@ class BinaryTreeUI:
         self.input_entry.bind("<Return>", lambda e: self.handle_input())
         self.root.bind("<Control_L>", lambda e: self.reset_game())
 
+    def handle_input(self):
+        if len(self.tree_logic.nodes_list) >= self.max_nodes: return
+        char = self.input_entry.get()
+
+        if char == "" or char == " ":
+            char = " "
+        self.tree_logic.tree_level_value(char)
+        self.input_entry.delete(0, tk.END)
+        self.update_view()
+        
 if __name__ == "__main__":
     root = tk.Tk()
     app = BinaryTreeUI(root)
