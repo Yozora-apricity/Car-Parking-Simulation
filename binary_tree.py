@@ -206,7 +206,7 @@ class BinaryTreeUI:
 
         menu_choices = tk.Label(
             header,
-            text="ESC: Quit | Ctrl: Reset | Tab: Menu",
+            text="ESC: Quit | Ctrl: Reset | Tab: Menu | Enter: Insert | Spacebar: Emopty node",
             fg="#94a3b8",
             bg="#0f172a",
             font=("Arial", 10)
@@ -217,7 +217,7 @@ class BinaryTreeUI:
             self.main_frame,
             bg="#f8fafc"
         )
-        input_container.pack(pady=15)
+        input_container.pack(pady=(15, 5))
 
         self.input_entry = ttk.Entry(
             input_container,
@@ -252,7 +252,7 @@ class BinaryTreeUI:
             bg="white", 
             height=400, 
             highlightthickness=0)
-        self.canvas.pack(fill=tk.BOTH, expand=True, padx=40)
+        self.canvas.pack(fill=tk.BOTH, expand=True, padx=40, pady=(0, 10))
 
         self.traversal_container = tk.Frame(
             self.main_frame, 
@@ -294,7 +294,7 @@ class BinaryTreeUI:
             char = " "
         self.tree_logic.tree_level_value(char)
         self.input_entry.delete(0, tk.END)
-        self.update_view()
+        self.update_view(char, mode="insert")
     
     def handle_random_insert(self):
         if len(self.tree_logic.nodes_list) >= self.max_nodes: return
@@ -304,21 +304,32 @@ class BinaryTreeUI:
         else:
             char = random.choice(string.ascii_lowercase + string.digits)
         self.tree_logic.tree_level_value(char)
-        self.update_view()
+        self.update_view(char, mode="random")
 
     def reset_game(self):
         self.start_binary_tree_page(self.target_level)
     
-    def update_view(self):
+    def update_view(self, value=None, mode=None):
         count = len(self.tree_logic.nodes_list)
         self.node_count_lbl.config(text=f"Level {self.target_level} | Node: {count}/{self.max_nodes}")
         
+        node_feedback_text = ""
+        if value is not None:
+            if mode == "insert":
+                node_feedback_text = f"Node {value} added to the tree!"
+            elif mode == "random":
+                node_feedback_text = f"Node {value} generated!"
+
         if count == self.max_nodes:
             self.game_feedback.config(text="Binary Tree completed!", fg="#16a34a")
+        else:
+            self.game_feedback.config(text=node_feedback_text, fg="#1e293b")
 
         self.canvas.delete("all")
         if self.tree_logic.root:
-            self.draw_tree(self.tree_logic.root, 500, 50, 240)
+            self.root.update_idletasks()
+            canvas_width = self.canvas.winfo_width()
+            self.draw_tree(self.tree_logic.root, canvas_width // 2, 50, canvas_width // 4)
 
         self.tlr_lbl.config(text=f"TLR (Pre-order):  {' '.join(tlr(self.tree_logic.root))}")
         self.ltr_lbl.config(text=f"LTR (In-order):   {' '.join(ltr(self.tree_logic.root))}")
@@ -360,9 +371,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = BinaryTreeUI(root)
     root.mainloop()
-
-# TODO: Once user pressed enter, it will direct them to an option of how many levels (max: 5) is the binary tree (can be random generated) - DONE
-#       After choosing the level, it will open to the page where user can create the binary tree, can be random generated or manual - DONE
-#       - Show the level and number of nodes for guide (Ex. Level: [#] | Nodes: #/31) - DONE
-#       - Have choices to reset, quit, or go back to main menu - DONE
-#       - Will show the TLR, LRT, and LTR of the binary tree - DONE
